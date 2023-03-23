@@ -11,7 +11,8 @@ import sqlalchemy
 # ? Just a class to help while coding by suggesting methods etc. Can be totally removed if wanted, no change
 from typing import Dict
 
-
+import random
+from psycopg2 import OperationalError
 # ? web-based applications written in flask are simply called apps are initialized in this format from the Flask base class. You may see the contents of `__name__` by hovering on it while debugging if you're curious
 app = Flask(__name__)
 
@@ -37,8 +38,90 @@ data_types = {
     'time': 'TIME',
 }
 
-# ? @app.get is called a decorator, from the Flask class, converting a simple python function to a REST API endpoint (function)
 
+## GRAB ENDPOINTS START
+@app.get("/drivers")
+def get_drivers():
+    statement = sqlalchemy.text(f"SELECT * FROM drivers;")
+
+    try:
+        statement = sqlalchemy.text(f"SELECT * FROM drivers;")
+        res = db.execute(statement)
+        db.commit()
+        data = generate_table_return_result(res)
+        return Response(data, 200)
+    
+    except Exception as e:
+        db.rollback()
+        return Response(str(e), 403)
+
+@app.post("/customer-insert")
+def insert_customer():
+    data = request.data.decode()
+    try:
+        post_data = json.loads(data)
+
+        insert = {
+            'name': 'customers',
+            'body': post_data,
+            'valueTypes': {
+                'email': 'TEXT',
+                'first_name': 'TEXT',
+                'last_name': 'TEXT'
+            }
+        }
+
+        statement = generate_insert_table_statement(insert)
+        db.execute(statement)
+        db.commit()
+        return Response(data)
+
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403)
+
+@app.post("/ride-insert")
+def insert_ride():
+    data = request.data.decode()
+    try:
+        post_data = json.loads(data)
+        
+        random_driver_statement = sqlalchemy.text("""
+        SELECT email FROM drivers
+        ORDER BY RANDOM()
+        LIMIT 1
+        """) 
+        res = db.execute(random_driver_statement)
+        random_driver_email = res.first()[0]
+
+        post_data['price'] = random.randint(1, 100)
+        post_data['status'] = 'PENDING'
+        post_data['driver_email'] = random_driver_email
+        insert = {
+            'name': 'rides',
+            'body': post_data,
+            'valueTypes': {
+                'customer_email': 'TEXT',
+                'driver_email': 'TEXT',
+                'start_location': 'TEXT',
+                'end_location': 'TEXT',
+                'departure_time': 'TIME',
+                'departure_date': 'DATE',
+                'price': 'INT',
+                'status': 'TEXT'
+            }
+        }
+        statement = generate_insert_table_statement(insert)
+        db.execute(statement)
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403)
+
+## GRAB ENDPOINTS END
+
+# ? @app.get is called a decorator, from the Flask class, converting a simple python function to a REST API endpoint (function)
 
 @app.get("/table")
 def get_relation():
@@ -134,7 +217,7 @@ def delete_row():
         db.rollback()
         return Response(str(e), 403)
 
-
+    
 def generate_table_return_result(res):
     # ? An empty Python list to store the entries/rows/tuples of the relation/table
     rows = []
@@ -152,7 +235,7 @@ def generate_table_return_result(res):
     output = {}
     output["columns"] = columns  # ? Stores the fields
     output["rows"] = rows  # ? Stores the tuples
-
+    print(output)
     """
         The returned object format:
         {
@@ -164,7 +247,7 @@ def generate_table_return_result(res):
         }
     """
     # ? Returns the stringified JSON object
-    return json.dumps(output)
+    return json.dumps(output, default=str)
 
 
 def generate_delete_statement(details: Dict):
@@ -208,7 +291,7 @@ def generate_insert_table_statement(insertion: Dict):
     column_values = "("
     for key, value in body.items():
         column_names += (key+",")
-        if valueTypes[key] == "TEXT" or valueTypes[key] == "TIME":
+        if valueTypes[key] == "TEXT" or valueTypes[key] == "TIME" or valueTypes[key] == "DATE":
             column_values += (f"\'{value}\',")
         else:
             column_values += (f"{value},")

@@ -1,7 +1,11 @@
 import './App.scss'
 import TableView from './components/TableView'
 import EditView from './components/EditView'
-import { useState } from 'react'
+import { ReactComponentElement, useState } from 'react'
+import RideView from './components/RideView'
+import NavBar from './components/NavBar'
+import Customers from './components/Customers'
+import Drivers from './components/Drivers'
 
 // ? This interface/object template/class - defines the JSON structure of the displayed table/relation for this application
 export interface RelationView {
@@ -9,28 +13,40 @@ export interface RelationView {
   rows: Array<{ [key: string]: any }> // ? represents the string-key, arbitrary-value type, for example [{"id": 2, "name": "mehdi"}, {"id": 1, "name": "fuad"}]}
 }
 
-// ? In React, a function returning HTML script is called a component, 
+// ? In React, a function returning HTML script is called a component,
 // ? and App is our main component, hosting the table editing menu and table view
 function App() {
-
   // ? state (currentRelationView) - is the JS/TS object holding the dynamic values
   // ? setState (setCurrentRelationView) - is the JS/TS method used to update the state object
   // ? our state `currentRelationView` holds the necessary data to display the requested table/relation
   // ? Note the generic type we defined above - type strict will help you keep the track by its strict types
   const [currentRelationView, setCurrentRelationView] = useState<RelationView>({
     columns: [],
-    rows: []
+    rows: [],
   })
-
-  return (
-    // ? The main block containing all the editible DOM elements
-    <div className="App">
-      <div id="main-view">
+  const [currentTab, setCurrentTab] = useState('general')
+  const tabComponents: { [dtype: string]: JSX.Element } = {
+    general: (
+      <>
         {/* Below component is the user edit menu to create/modify the required table. Refer to `handleRelationViewUpdate` to learn about props*/}
-        <EditView relationView={currentRelationView} onRelationChange={handleRelationViewUpdate} />
+
+        <EditView
+          relationView={currentRelationView}
+          onRelationChange={handleRelationViewUpdate}
+        />
         {/* TableView component is just for displaying the table on the right side of the view */}
         <TableView relationView={currentRelationView} />
-      </div>
+      </>
+    ),
+    'ride-sharing': <RideView />,
+    customers: <Customers />,
+    drivers: <Drivers />,
+  }
+  return (
+    // ? The main block containing all the editible DOM elements
+    <div className='App'>
+      <NavBar onTabChange={(tabName) => setCurrentTab(tabName)} />
+      <div id='main-view'>{tabComponents[currentTab]}</div>
     </div>
   )
 
@@ -43,7 +59,7 @@ function App() {
       for (let fieldKey of Object.keys(relationView.rows[i])) {
         let fieldValue = relationView.rows[i][fieldKey]
         // ? And it stringifies it if it is boolean
-        if (typeof (fieldValue) === 'boolean') {
+        if (typeof fieldValue === 'boolean') {
           relationView.rows[i][fieldKey] = fieldValue.toString()
         }
       }

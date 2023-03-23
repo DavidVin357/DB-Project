@@ -1,0 +1,22 @@
+.container {
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+.navbar {
+  display: flex;
+  list-style-type: none;
+}
+.navbar li {
+  padding-right: 15px;
+  cursor: pointer;
+}
+
+.tables {
+  display: flex;
+  flex-direction: column;
+}
+.users-table {
+  display: flex;
+  flex-direction: column;
+}

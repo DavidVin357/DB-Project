@@ -22,4 +22,28 @@ CREATE TABLE IF NOT EXISTS rides (
 	price NUMERIC NOT NULL,
 	status VARCHAR(64) NOT NULL
 );
-	
+
+CREATE TABLE IF NOT EXISTS customers (
+    first_name VARCHAR(64) NOT NULL
+	last_name VARCHAR(64) NOT NULL,
+	email VARCHAR(64) PRIMARY KEY
+	credit_card VARCHAR(64) NOT NULL
+	ewallet_balance INT CHECK (ewallet_balance>=0)
+);
+
+CREATE TABLE IF NOT EXISTS businesses (
+    fullname VARCHAR(64) NOT NULL,
+	email VARCHAR(64) PRIMARY KEY,
+	credit_card VARCHAR(64) NOT NULL, 
+	ewallet_balance INT CHECK (ewallet_balance>=0)
+);
+
+CREATE TABLE IF NOT EXISTS transactions (
+    customer_email references customers(email),
+	business_email references businesses(email),
+	amount INT CHECK (amount>=0),
+	customer_ewallet references customers(ewallet_balance)
+	business_ewallet references businesses(ewallet_balance)
+	transaction_time TIME NOT NULL,
+	transaction_date DATE NOT NULL
+);

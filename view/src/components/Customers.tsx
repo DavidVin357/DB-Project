@@ -33,6 +33,13 @@ const Customers = () => {
       last_name: customerLastName,
     }
 
+    for (const [key, value] of Object.entries(insertionData)) {
+      if (!value) {
+        alert(`${key} cannot be empty`)
+        return
+      }
+    }
+
     let success = await api.createCustomer(insertionData)
     if (!success) {
       return
@@ -43,37 +50,42 @@ const Customers = () => {
       setCustomersData(data)
     })
   }
+
   return (
     <div className='container'>
       <div>
         <h1>Create customer</h1>
-        <Field
-          fieldType='email'
-          fieldName='user_email'
-          title='Email'
-          onChange={onCustomerEmailChange}
-        />
-        <Field
-          fieldType='text'
-          fieldName='first_name'
-          title='First name'
-          onChange={onCustomerFirstNameChange}
-        />
-        <Field
-          fieldType='text'
-          fieldName='last_name'
-          title='Last name'
-          onChange={onCustomerLastNameChange}
-        />
-        <button onClick={handleCustomerCreation}>Create customer</button>
+        <form>
+          <Field
+            fieldType='email'
+            fieldName='user_email'
+            title='Email'
+            onChange={onCustomerEmailChange}
+          />
+          <Field
+            fieldType='text'
+            fieldName='first_name'
+            title='First name'
+            onChange={onCustomerFirstNameChange}
+          />
+          <Field
+            fieldType='text'
+            fieldName='last_name'
+            title='Last name'
+            onChange={onCustomerLastNameChange}
+          />
+          <button onClick={handleCustomerCreation} type='reset'>
+            Create customer
+          </button>
+        </form>
       </div>
       <div className='customers'>
         <h2>Current customers</h2>
 
-        {customersData?.columns.length ? (
+        {customersData?.rows.length ? (
           <TableView relationView={customersData} />
         ) : (
-          <h2>No customers yet</h2>
+          <h3>No customers yet</h3>
         )}
       </div>
     </div>

@@ -40,20 +40,33 @@ data_types = {
 
 
 ## GRAB ENDPOINTS START
-@app.get("/drivers")
-def get_drivers():
-    statement = sqlalchemy.text(f"SELECT * FROM drivers;")
+@app.post("/driver-insert")
+def insert_driver():
+    data = request.data.decode()
 
     try:
-        statement = sqlalchemy.text(f"SELECT * FROM drivers;")
-        res = db.execute(statement)
+        post_data = json.loads(data)
+
+        insert = {
+            'name': 'drivers',
+            'body': post_data,
+            'valueTypes': {
+                'email': 'TEXT',
+                'first_name': 'TEXT',
+                'last_name': 'TEXT',
+                'license_number': 'TEXT',
+                'car_number': 'TEXT'
+            }
+        }
+
+        statement = generate_insert_table_statement(insert)
+        db.execute(statement)
         db.commit()
-        data = generate_table_return_result(res)
-        return Response(data, 200)
-    
+        return Response(data)
+
     except Exception as e:
         db.rollback()
-        return Response(str(e), 403)
+        return Response(str(e.__dict__['orig']), 403)
 
 @app.post("/customer-insert")
 def insert_customer():

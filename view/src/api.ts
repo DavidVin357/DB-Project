@@ -89,3 +89,14 @@ export async function createCustomer(customer_data: any) {
   alert(`Failed to create the customer!\nError:\n${res.data}`)
   return false
 }
+
+export async function createDriver(driver_data: any) {
+  let res = await api.post('/driver-insert', driver_data)
+
+  if (res.ok) {
+    console.log('Created driver successfully!')
+    return true
+  }
+  alert(`Failed to create the driver!\nError:\n${res.data}`)
+  return false
+}

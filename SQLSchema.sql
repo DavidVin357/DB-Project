@@ -8,13 +8,13 @@ CREATE TABLE IF NOT EXISTS drivers (
     first_name VARCHAR(64) NOT NULL,
 	last_name VARCHAR(64) NOT NULL,
 	email VARCHAR(64) PRIMARY KEY,
-	licence_number CHAR(9),
-	car_number CHAR(8)
+	license_number CHAR(9) UNIQUE NOT NULL,
+	car_number CHAR(8) UNIQUE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS rides (
-    customer_email references customers(email),
-	driver_email VARCHAR(64) references drivers(email),
+    customer_email references customers(email) NOT NULL,
+	driver_email VARCHAR(64) references drivers(email) NOT NULl,
 	start_location VARCHAR(64) NOT NULL,
 	end_location VARCHAR(64) NOT NULL,
 	departure_time TIME NOT NULL,

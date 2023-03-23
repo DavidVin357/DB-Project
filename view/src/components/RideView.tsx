@@ -36,6 +36,13 @@ const RideView = () => {
       departure_date: departureDate,
     }
 
+    for (const [key, value] of Object.entries(insertionData)) {
+      if (!value) {
+        alert(`${key} cannot be empty`)
+        return
+      }
+    }
+
     let success = await api.createRide(insertionData)
     if (!success) {
       return
@@ -101,10 +108,10 @@ const RideView = () => {
         <div className='order-table'>
           <h1>Orders</h1>
 
-          {ordersData ? (
+          {ordersData?.rows.length ? (
             <TableView relationView={ordersData} />
           ) : (
-            <h2>No orders yet</h2>
+            <h3>No orders yet</h3>
           )}
         </div>
 
@@ -112,19 +119,19 @@ const RideView = () => {
           <div className='customers'>
             <h2>Current customers</h2>
 
-            {customersData?.columns.length ? (
+            {customersData?.rows.length ? (
               <TableView relationView={customersData} />
             ) : (
-              <h2>No customers yet</h2>
+              <h3>No customers yet</h3>
             )}
           </div>
           <div className='drivers'>
             <h2>Current drivers</h2>
 
-            {driversData?.columns.length ? (
+            {driversData?.rows.length ? (
               <TableView relationView={driversData} />
             ) : (
-              <h2>No drivers yet</h2>
+              <h3>No drivers yet</h3>
             )}
           </div>
         </div>

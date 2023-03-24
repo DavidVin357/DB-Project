@@ -5,34 +5,27 @@ import * as api from '../api'
 import TableView from './TableView'
 
 const Drivers = () => {
-  const [driverData, setDriverData] = useState<RelationView>()
-
+  const [currentDrivers, setCurrentDrivers] = useState<RelationView>()
   const [driverEmail, setDriverEmail] = useState('')
   const [driverFirstName, setDriverFirstName] = useState('')
   const [driverLastName, setDriverLastName] = useState('')
   const [licenseNumber, setLicenseNumber] = useState('')
   const [carNumber, setCarNumber] = useState('')
 
+  // Initial load of current drivers
   useEffect(() => {
     api.getRelation('drivers').then((data) => {
-      setDriverData(data)
+      setCurrentDrivers(data)
     })
   }, [])
 
-  const onDriverEmailChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setDriverEmail(e.target.value)
-
-  const onDriverFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setDriverFirstName(e.target.value)
-
-  const onDriverLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setDriverLastName(e.target.value)
-
-  const onLicenseNumberChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setLicenseNumber(e.target.value)
-  const onCarNumberChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setCarNumber(e.target.value)
-
+  const clearValues = () => {
+    setDriverEmail('')
+    setDriverFirstName('')
+    setDriverLastName('')
+    setLicenseNumber('')
+    setCarNumber('')
+  }
   const handleDriverCreation = async () => {
     const insertionData = {
       email: driverEmail,
@@ -53,11 +46,15 @@ const Drivers = () => {
       return
     }
 
+    // Clear fields
+    clearValues()
+
     // Refresh Orders table
     api.getRelation('drivers').then((data) => {
-      setDriverData(data)
+      setCurrentDrivers(data)
     })
   }
+
   return (
     <div className='container'>
       <div>
@@ -65,33 +62,38 @@ const Drivers = () => {
         <form>
           <Field
             fieldType='email'
-            fieldName='user_email'
+            fieldName='driver_email'
             title='Email'
-            onChange={onDriverEmailChange}
+            value={driverEmail}
+            onChange={(e) => setDriverEmail(e.target.value)}
           />
           <Field
             fieldType='text'
             fieldName='first_name'
             title='First name'
-            onChange={onDriverFirstNameChange}
+            value={driverFirstName}
+            onChange={(e) => setDriverFirstName(e.target.value)}
           />
           <Field
             fieldType='text'
             fieldName='last_name'
             title='Last name'
-            onChange={onDriverLastNameChange}
+            value={driverLastName}
+            onChange={(e) => setDriverLastName(e.target.value)}
           />
           <Field
             fieldType='text'
             fieldName='license_number'
-            title='License Number'
-            onChange={onLicenseNumberChange}
+            title='License Number (9 characters)'
+            value={licenseNumber}
+            onChange={(e) => setLicenseNumber(e.target.value)}
           />
           <Field
             fieldType='text'
             fieldName='car_number'
-            title='Car number'
-            onChange={onCarNumberChange}
+            title='Car number (8 characters)'
+            value={carNumber}
+            onChange={(e) => setCarNumber(e.target.value)}
           />
           <button onClick={handleDriverCreation} type='reset'>
             Create driver
@@ -101,8 +103,8 @@ const Drivers = () => {
       <div className='drivers'>
         <h2>Current drivers</h2>
 
-        {driverData?.rows.length ? (
-          <TableView relationView={driverData} />
+        {currentDrivers?.rows.length ? (
+          <TableView relationView={currentDrivers} />
         ) : (
           <h3>No drivers yet</h3>
         )}

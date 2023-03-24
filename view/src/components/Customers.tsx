@@ -16,16 +16,11 @@ const Customers = () => {
       setCustomersData(data)
     })
   }, [])
-
-  const onCustomerEmailChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setCustomerEmail(e.target.value)
-
-  const onCustomerFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setCustomerFirstName(e.target.value)
-
-  const onCustomerLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setCustomerLastName(e.target.value)
-
+  const clearValues = () => {
+    setCustomerEmail('')
+    setCustomerFirstName('')
+    setCustomerLastName('')
+  }
   const handleCustomerCreation = async () => {
     const insertionData = {
       email: customerEmail,
@@ -45,6 +40,9 @@ const Customers = () => {
       return
     }
 
+    // Clear fields
+    clearValues()
+
     // Refresh Orders table
     api.getRelation('customers').then((data) => {
       setCustomersData(data)
@@ -58,21 +56,24 @@ const Customers = () => {
         <form>
           <Field
             fieldType='email'
-            fieldName='user_email'
+            fieldName='customer_email'
             title='Email'
-            onChange={onCustomerEmailChange}
+            value={customerEmail}
+            onChange={(e) => setCustomerEmail(e.target.value)}
           />
           <Field
             fieldType='text'
             fieldName='first_name'
             title='First name'
-            onChange={onCustomerFirstNameChange}
+            value={customerFirstName}
+            onChange={(e) => setCustomerFirstName(e.target.value)}
           />
           <Field
             fieldType='text'
             fieldName='last_name'
             title='Last name'
-            onChange={onCustomerLastNameChange}
+            value={customerLastName}
+            onChange={(e) => setCustomerLastName(e.target.value)}
           />
           <button onClick={handleCustomerCreation} type='reset'>
             Create customer

@@ -2,6 +2,7 @@ interface FieldProps {
   fieldName: string
   fieldType: string
   title: string
+  value: any
   onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
 }
 
@@ -12,6 +13,7 @@ const Field = (props: FieldProps) => {
       <input
         name={props.fieldName}
         type={props.fieldType}
+        value={props.value}
         onChange={props.onChange}
       />
     </div>

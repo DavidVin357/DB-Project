@@ -5,11 +5,20 @@ import * as api from '../api'
 import TableView from './TableView'
 
 const RideView = () => {
-  const [userEmail, setUserEmail] = useState('')
+  const [customerEmail, setCustomerEmail] = useState('')
   const [startLocation, setStartLocation] = useState('')
   const [endLocation, setEndLocation] = useState('')
-  const [departureTime, setDepartureTime] = useState('')
-  const [departureDate, setDepartureDate] = useState('')
+  const [departureDate, setDepartureDate] = useState(
+    new Date().toISOString().substring(0, 10)
+  )
+  const [departureTime, setDepartureTime] = useState(
+    new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+  )
+
   const [ordersData, setOrdersData] = useState<RelationView>()
   const [customersData, setCustomersData] = useState<RelationView>()
   const [driversData, setDriversData] = useState<RelationView>()
@@ -27,9 +36,23 @@ const RideView = () => {
     })
   }, [])
 
+  const clearValues = () => {
+    setCustomerEmail('')
+    setStartLocation('')
+    setEndLocation('')
+    setDepartureDate(new Date().toISOString().substring(0, 10))
+    setDepartureTime(
+      new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      })
+    )
+  }
+
   const handleOrderCreation = async () => {
     const insertionData = {
-      customer_email: userEmail,
+      customer_email: customerEmail,
       start_location: startLocation,
       end_location: endLocation,
       departure_time: departureTime,
@@ -48,25 +71,14 @@ const RideView = () => {
       return
     }
 
+    // Clear fields
+    clearValues()
+
     // Refresh Orders table
     api.getRelation('rides').then((data) => {
       setOrdersData(data)
     })
   }
-  const onUserEmailChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setUserEmail(e.target.value)
-
-  const onStartLocationChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setStartLocation(e.target.value)
-
-  const onEndLocationChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setEndLocation(e.target.value)
-
-  const onTimeChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setDepartureTime(e.target.value)
-
-  const onDateChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setDepartureDate(e.target.value)
 
   return (
     <div className='container'>
@@ -76,31 +88,36 @@ const RideView = () => {
           fieldType='email'
           fieldName='customer_email'
           title='Customer email'
-          onChange={onUserEmailChange}
+          value={customerEmail}
+          onChange={(e) => setCustomerEmail(e.target.value)}
         />
         <Field
           fieldType='text'
           fieldName='start_location'
           title='Start location'
-          onChange={onStartLocationChange}
+          value={startLocation}
+          onChange={(e) => setStartLocation(e.target.value)}
         />
         <Field
           fieldType='text'
           fieldName='end_location'
           title='End location'
-          onChange={onEndLocationChange}
+          value={endLocation}
+          onChange={(e) => setEndLocation(e.target.value)}
         />
         <Field
           fieldType='date'
           fieldName='departure_date'
           title='Date of departure'
-          onChange={onDateChange}
+          value={departureDate}
+          onChange={(e) => setDepartureDate(e.target.value)}
         />
         <Field
           fieldType='time'
           fieldName='departure_time'
           title='Time of departure'
-          onChange={onTimeChange}
+          value={departureTime}
+          onChange={(e) => setDepartureTime(e.target.value)}
         />
         <button onClick={handleOrderCreation}>Order Ride</button>
       </div>

@@ -12,7 +12,7 @@ import sqlalchemy
 from typing import Dict
 
 import random
-from psycopg2 import OperationalError
+from datetime import date, time
 # ? web-based applications written in flask are simply called apps are initialized in this format from the Flask base class. You may see the contents of `__name__` by hovering on it while debugging if you're curious
 app = Flask(__name__)
 
@@ -259,8 +259,14 @@ def generate_table_return_result(res):
             ]
         }
     """
+
+    def json_serializer(obj):
+        if isinstance(obj, (time, date)):
+            return obj.isoformat()
+        else:
+            return str(obj)
     # ? Returns the stringified JSON object
-    return json.dumps(output, default=str)
+    return json.dumps(output, default=json_serializer)
 
 
 def generate_delete_statement(details: Dict):

@@ -1,18 +1,18 @@
 CREATE TABLE IF NOT EXISTS customers (
     first_name VARCHAR(64) NOT NULL,
 	last_name VARCHAR(64) NOT NULL,
-	email VARCHAR(64) PRIMARY KEY
 	email VARCHAR(64) PRIMARY KEY,
-	credit_card VARCHAR(64) NOT NULL
+	credit_card VARCHAR(64) NOT NULL,
 	ewallet_balance INT CHECK (ewallet_balance>=0) NOT NULL
 );
+
 
 CREATE TABLE IF NOT EXISTS drivers (
     first_name VARCHAR(64) NOT NULL,
 	last_name VARCHAR(64) NOT NULL,
 	email VARCHAR(64) PRIMARY KEY,
 	license_number CHAR(9) UNIQUE NOT NULL CHECK (length(license_number) = 9),
-	car_number CHAR(8) UNIQUE NOT NULL CHECK (length(car_number) = 8)
+	car_number CHAR(8) UNIQUE NOT NULL CHECK (length(car_number) = 8),
 	ewallet_balance INT CHECK (ewallet_balance>=0) NOT NULL
 	
 );
@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS rides (
 	departure_time TIME NOT NULL,
 	departure_date DATE NOT NULL,
 	price NUMERIC NOT NULL,
-	status VARCHAR(64) NOT NULL
+	status VARCHAR(64) NOT NULL,
+	PRIMARY KEY (customer_email, driver_email, departure_date, departure_time)
 );
 	
 

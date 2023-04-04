@@ -3,8 +3,7 @@ import { RelationView } from './App'
 import { APP_URL } from './constants'
 // ? REST API functions to communicate with your database backend
 // ? Machine IP - replace with your server's IP address; run `ifconfig` and take the first inet IP address (should be below ens32)
-const machineIP = '172.25.77.195'
-const machinePort = '2223'
+
 const api = apisauce.create({
   baseURL: APP_URL,
 })
@@ -111,18 +110,16 @@ export async function createGrocery(grocery_data: any) {
   return false
 }
 
-
 export async function createFood(food_data: any) {
-    let res = await api.post('/food-insert', food_data)
-  
-    if (res.ok) {
-      console.log('Created food successfully!')
-      return true
-    }
-    alert(`Failed to create the food order!\nError:\n${res.data}`)
-    return false
-  }
+  let res = await api.post('/food-insert', food_data)
 
+  if (res.ok) {
+    console.log('Created food successfully!')
+    return true
+  }
+  alert(`Failed to create the food order!\nError:\n${res.data}`)
+  return false
+}
 
 export async function createTransaction(transaction_data: any) {
   let res = await api.post('/transaction-insert', transaction_data)

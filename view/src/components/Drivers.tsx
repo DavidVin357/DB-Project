@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Button, Heading, Box } from 'theme-ui'
+
 import { RelationView } from '../App'
 import Field from './Field'
 import * as api from '../api'
@@ -58,8 +60,8 @@ const Drivers = () => {
   return (
     <div className='container'>
       <div>
-        <h1>Create driver</h1>
-        <form>
+        <Heading>Create driver</Heading>
+        <Box as='form'>
           <Field
             fieldType='email'
             fieldName='driver_email'
@@ -95,18 +97,18 @@ const Drivers = () => {
             value={carNumber}
             onChange={(e) => setCarNumber(e.target.value)}
           />
-          <button onClick={handleDriverCreation} type='reset'>
+          <Button onClick={handleDriverCreation} type='reset'>
             Create driver
-          </button>
-        </form>
+          </Button>
+        </Box>
       </div>
       <div className='drivers'>
-        <h2>Current drivers</h2>
+        <Heading>Current drivers</Heading>
 
         {currentDrivers?.rows.length ? (
           <TableView relationView={currentDrivers} />
         ) : (
-          <h3>No drivers yet</h3>
+          <Heading as='h3'>No drivers yet</Heading>
         )}
       </div>
     </div>

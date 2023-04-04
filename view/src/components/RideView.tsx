@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Heading, Button } from 'theme-ui'
 import { RelationView } from '../App'
 import Field from './Field'
 import * as api from '../api'
@@ -83,7 +84,7 @@ const RideView = () => {
   return (
     <div className='container'>
       <div className='order-ride-view'>
-        <h1>Order Ride </h1>
+        <Heading>Order Ride </Heading>
         <Field
           fieldType='email'
           fieldName='customer_email'
@@ -119,36 +120,36 @@ const RideView = () => {
           value={departureTime}
           onChange={(e) => setDepartureTime(e.target.value)}
         />
-        <button onClick={handleOrderCreation}>Order Ride</button>
+        <Button onClick={handleOrderCreation}>Order Ride</Button>
       </div>
       <div className='tables'>
         <div className='order-table'>
-          <h1>Orders</h1>
+          <Heading>Orders</Heading>
 
           {ordersData?.rows.length ? (
             <TableView relationView={ordersData} />
           ) : (
-            <h3>No orders yet</h3>
+            <Heading as='h3'>No orders yet</Heading>
           )}
         </div>
 
         <div className='users-table'>
           <div className='customers'>
-            <h2>Current customers</h2>
+            <Heading as='h2'>Current customers</Heading>
 
             {customersData?.rows.length ? (
               <TableView relationView={customersData} />
             ) : (
-              <h3>No customers yet</h3>
+              <Heading as='h3'>No customers yet</Heading>
             )}
           </div>
           <div className='drivers'>
-            <h2>Current drivers</h2>
+            <Heading as='h2'>Current drivers</Heading>
 
             {driversData?.rows.length ? (
               <TableView relationView={driversData} />
             ) : (
-              <h3>No drivers yet</h3>
+              <Heading as='h3'>No drivers yet</Heading>
             )}
           </div>
         </div>

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
+import { Button, Heading, Box } from 'theme-ui'
+
 import { RelationView } from '../App'
 import Field from './Field'
 import * as api from '../api'
 import TableView from './TableView'
-
 const Customers = () => {
   const [customersData, setCustomersData] = useState<RelationView>()
 
@@ -52,8 +53,8 @@ const Customers = () => {
   return (
     <div className='container'>
       <div>
-        <h1>Create customer</h1>
-        <form>
+        <Heading>Create customer</Heading>
+        <Box as='form'>
           <Field
             fieldType='email'
             fieldName='customer_email'
@@ -75,13 +76,13 @@ const Customers = () => {
             value={customerLastName}
             onChange={(e) => setCustomerLastName(e.target.value)}
           />
-          <button onClick={handleCustomerCreation} type='reset'>
+          <Button onClick={handleCustomerCreation} type='reset'>
             Create customer
-          </button>
-        </form>
+          </Button>
+        </Box>
       </div>
       <div className='customers'>
-        <h2>Current customers</h2>
+        <Heading>Current customers</Heading>
 
         {customersData?.rows.length ? (
           <TableView relationView={customersData} />

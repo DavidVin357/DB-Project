@@ -3,7 +3,7 @@ import { RelationView } from '../App'
 import Field from './Field'
 import * as api from '../api'
 import TableView from './TableView'
-
+import { Button, Heading } from 'theme-ui'
 const Groceries = () => {
   const [customerEmail, setCustomerEmail] = useState('')
   const [SelectGrocery, setSelectGrocery] = useState('')
@@ -88,14 +88,14 @@ const Groceries = () => {
 
   const onTimeChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setOrderTime(e.target.value)
-    
+
   const onDateChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setOrderDate(e.target.value)
-  
+
   return (
     <div className='container'>
       <div className='order-grocery-view'>
-        <h1>Order Grocery</h1>
+        <Heading>Order Grocery</Heading>
         <Field
           fieldType='email'
           fieldName='customer_email'
@@ -131,11 +131,11 @@ const Groceries = () => {
           value={OrderDate}
           onChange={(e) => setOrderTime(e.target.value)}
         />
-        <button onClick={handleOrderCreation}>Order Grocery</button>
+        <Button onClick={handleOrderCreation}>Order Grocery</Button>
       </div>
       <div className='tables'>
         <div className='order-table'>
-          <h1>Orders</h1>
+          <Heading>Orders</Heading>
 
           {groceriesData ? (
             <TableView relationView={groceriesData} />

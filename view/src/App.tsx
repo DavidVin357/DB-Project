@@ -1,4 +1,8 @@
 import './App.scss'
+
+import { ThemeProvider } from 'theme-ui'
+import { theme } from './theme'
+
 import TableView from './components/TableView'
 import EditView from './components/EditView'
 import { ReactComponentElement, useState } from 'react'
@@ -51,10 +55,10 @@ function App() {
   }
   return (
     // ? The main block containing all the editible DOM elements
-    <div className='App'>
+    <ThemeProvider theme={theme}>
       <NavBar onTabChange={(tabName) => setCurrentTab(tabName)} />
       <div id='main-view'>{tabComponents[currentTab]}</div>
-    </div>
+    </ThemeProvider>
   )
 
   // ? A props funcion for the EditView - keeping the relation view for up-to-date to be displayed on the right side of the window

@@ -3,7 +3,7 @@ import { RelationView } from '../App'
 import Field from './Field'
 import * as api from '../api'
 import TableView from './TableView'
-
+import { Heading } from 'theme-ui'
 const Ewallet = () => {
   const [transactionsData, setTransactionsData] = useState<RelationView>()
 
@@ -11,12 +11,11 @@ const Ewallet = () => {
   const [DriverEmail, setDriverEmail] = useState('')
   const [Amount, setAmount] = useState('')
 
-  
   const handleTransactionCreation = async () => {
     const insertionData = {
       customer_email: CustomerEmail,
       driver_email: DriverEmail,
-      amount: Amount
+      amount: Amount,
     }
 
     for (const [key, value] of Object.entries(insertionData)) {
@@ -31,7 +30,6 @@ const Ewallet = () => {
       return
     }
 
-
     // Refresh Orders table
     api.getRelation('transactions').then((data) => {
       setTransactionsData(data)
@@ -41,7 +39,7 @@ const Ewallet = () => {
   return (
     <div className='container'>
       <div>
-        <h1>Create transaction</h1>
+        <Heading>Create transaction</Heading>
         <form>
           <Field
             fieldType='email'
@@ -76,7 +74,7 @@ const Ewallet = () => {
           <TableView relationView={transactionsData} />
         ) : (
           <h3>No transactions yet</h3>
-          )}
+        )}
       </div>
     </div>
   )

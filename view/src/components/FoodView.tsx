@@ -3,7 +3,7 @@ import { RelationView } from '../App'
 import Field from './Field'
 import * as api from '../api'
 import TableView from './TableView'
-
+import { Button, Heading } from 'theme-ui'
 const FoodView = () => {
   const [customerEmail, setCustomerEmail] = useState('')
   const [SelectRestaurant, setSelectRestaurant] = useState('')
@@ -62,8 +62,8 @@ const FoodView = () => {
       return
     }
 
-     // Clear fields
-     clearValues()
+    // Clear fields
+    clearValues()
 
     // Refresh Orders table
     api.getRelation('foodorder').then((data) => {
@@ -81,14 +81,14 @@ const FoodView = () => {
 
   const onTimeChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setOrderTime(e.target.value)
-    
+
   const onDateChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setOrderDate(e.target.value)
 
   return (
     <div className='container'>
       <div className='order-food-view'>
-        <h1>Order Food</h1>
+        <Heading>Order Food</Heading>
         <Field
           fieldType='email'
           fieldName='customer_email'
@@ -124,11 +124,11 @@ const FoodView = () => {
           value={OrderDate}
           onChange={onDateChange}
         />
-        <button onClick={handleOrderCreation}>Order Food</button>
+        <Button onClick={handleOrderCreation}>Order Food</Button>
       </div>
       <div className='tables'>
         <div className='foodorder-table'>
-          <h1>Orders</h1>
+          <Heading>Orders</Heading>
 
           {foodsData?.rows.length ? (
             <TableView relationView={foodsData} />

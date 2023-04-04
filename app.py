@@ -1,6 +1,6 @@
 # ? Cross-origin Resource Sharing - here it allows the view and core applications deployed on different ports to communicate. No need to know anything about it since it's only used once
 from flask_cors import CORS, cross_origin
-# ? Python's built-in library for JSON operations. Here, is used to convert JSON strings into Python dictionaries and vice-versa
+# ? Python's built-in library for JSON operations. Here, is used to convert JSON strings inpipto Python dictionaries and vice-versa
 import json
 # ? flask - library used to write REST API endpoints (functions in simple words) to communicate with the client (view) application's interactions
 # ? request - is the default object used in the flask endpoints to get data from the requests
@@ -13,6 +13,7 @@ from typing import Dict
 
 import random
 from datetime import date, time
+from psycopg2 import OperationalError
 # ? web-based applications written in flask are simply called apps are initialized in this format from the Flask base class. You may see the contents of `__name__` by hovering on it while debugging if you're curious
 app = Flask(__name__)
 
@@ -38,6 +39,248 @@ data_types = {
     'time': 'TIME',
 }
 
+
+## GRAB ENDPOINTS START
+@app.post("/driver-insert")
+def insert_driver():
+    data = request.data.decode()
+
+    try:
+        post_data = json.loads(data)
+
+        insert = {
+            'name': 'drivers',
+            'body': post_data,
+            'valueTypes': {
+                'email': 'TEXT',
+                'first_name': 'TEXT',
+                'last_name': 'TEXT',
+                'license_number': 'TEXT',
+                'car_number': 'TEXT',
+                'ewallet_balance': 'INT'
+            }
+        }
+
+        statement = generate_insert_table_statement(insert)
+        db.execute(statement)
+        db.commit()
+        return Response(data)
+
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403)
+
+@app.post("/customer-insert")
+def insert_customer():
+    data = request.data.decode()
+    try:
+        post_data = json.loads(data)
+
+        insert = {
+            'name': 'customers',
+            'body': post_data,
+            'valueTypes': {
+                'email': 'TEXT',
+                'first_name': 'TEXT',
+                'last_name': 'TEXT',
+                'ewallet_balance': 'INT'
+            }
+        }
+
+        statement = generate_insert_table_statement(insert)
+        db.execute(statement)
+        db.commit()
+        return Response(data)
+
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403)
+
+@app.post("/ride-insert")
+def insert_ride():
+    data = request.data.decode()
+    try:
+        post_data = json.loads(data)
+        
+        random_driver_statement = sqlalchemy.text("""
+        SELECT email FROM drivers
+        ORDER BY RANDOM()
+        LIMIT 1
+        """) 
+        res = db.execute(random_driver_statement)
+        random_driver_email = res.first()[0]
+
+        post_data['price'] = random.randint(1, 100)
+        post_data['status'] = 'PENDING'
+        post_data['driver_email'] = random_driver_email
+        insert = {
+            'name': 'rides',
+            'body': post_data,
+            'valueTypes': {
+                'customer_email': 'TEXT',
+                'driver_email': 'TEXT',
+                'start_location': 'TEXT',
+                'end_location': 'TEXT',
+                'departure_time': 'TIME',
+                'departure_date': 'DATE',
+                'price': 'INT',
+                'status': 'TEXT'
+            }
+        }
+        statement = generate_insert_table_statement(insert)
+        db.execute(statement)
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403)
+
+@app.post("/grocery-insert")
+def insert_grocery():
+    data = request.data.decode()
+    try:
+        post_data = json.loads(data)
+
+        random_driver_statement = sqlalchemy.text("""
+        SELECT email FROM drivers
+        ORDER BY RANDOM()
+        LIMIT 1
+        """) 
+        res = db.execute(random_driver_statement)
+        random_driver_email = res.first()[0]
+
+        post_data['price'] = random.randint(1, 101)
+        post_data['status'] = 'PENDING'
+        post_data['driver_email'] = random_driver_email
+        insert = {
+            'name': 'groceriesorder',
+            'body': post_data,
+            'valueTypes': {
+                'customer_email': 'TEXT',
+                'driver_email': 'TEXT',
+                'select_grocery': 'TEXT',
+                'receiving_location': 'TEXT',
+                'order_time': 'TIME',
+                'order_date': 'DATE',
+                'price': 'INT',
+                'status': 'TEXT'
+            }
+        }
+        statement = generate_insert_table_statement(insert)
+        db.execute(statement)
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403)    
+
+
+@app.post("/transaction-insert")
+def insert_transactions():
+    data = request.data.decode()
+    try:
+        post_data = json.loads(data)
+
+        insert = {
+            'name': 'transactions',
+            'body': post_data,
+            'valueTypes': {
+                'customer_email': 'TEXT',
+                'driver_email': 'TEXT',
+                'amount': 'INT',
+                'customer_ewallet': 'INT',
+                'driver_ewallet': 'INT'
+            }
+        }
+        statement = generate_insert_table_statement(insert)
+        db.execute(statement)
+        db.commit()
+        return Response(data)
+
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403)
+		
+
+@app.post("/food-insert")
+def insert_food():
+    data = request.data.decode()
+    try:
+        post_data = json.loads(data)
+        
+        random_driver_statement = sqlalchemy.text("""
+        SELECT email FROM drivers
+        ORDER BY RANDOM()
+        LIMIT 1
+        """) 
+        res = db.execute(random_driver_statement)
+        random_driver_email = res.first()[0]
+
+        post_data['price'] = random.randint(1, 100)
+        post_data['status'] = 'PENDING'
+        post_data['driver_email'] = random_driver_email
+        insert = {
+            'name': 'foodorder',
+            'body': post_data,
+            'valueTypes': {
+                'customer_email': 'TEXT',
+                'driver_email': 'TEXT',
+                'select_restaurant': 'TEXT',
+                'receiving_location': 'TEXT',
+                'order_time': 'TIME',
+                'order_date': 'DATE',
+                'price': 'INT',
+                'status': 'TEXT'
+            }
+        }
+        statement = generate_insert_table_statement(insert)
+        db.execute(statement)
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403)
+    
+@app.post("/update-customer-ewallet")
+def update_customer_ewallet():
+    data = request.data.decode()
+    try:
+        customer_update = {
+            "name": "customer",
+            "id": update["ewallet_balance"],
+            "body": {"ewallet_balance":f'ewallet_balance-{t.amount}'}
+            #"body": UPDATE customer c SET ewallet_balance = ewallet_balance - t.amount FROM transaction t WHERE  t.customer_email=c.email,
+        }
+        statement = generate_update_table_statement(customer_update)
+        db.execute(statement)
+        db.commit()
+        return Response(statement.text, 200)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e), 403)
+
+
+@app.post("/update-driver-ewallet")
+def update_driver_ewallet():
+    data = request.data.decode()    
+    try: 
+        driver_update = {
+            "name": "driver",
+            "id": update["ewallet_balance"],
+            "body": {"ewallet_balance":f'ewallet_balance-{t.amount}'}
+            # "body": UPDATE driver d SET ewallet_balance = ewallet_balance - t.amount FROM transaction t WHERE  t.driver_email=d.email ,
+        }
+        statement = generate_update_table_statement(customer_update)
+        db.execute(statement)
+        db.commit()
+        return Response(statement.text, 200)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e), 403)
+
+## GRAB ENDPOINTS END
+
+# ? @app.get is called a decorator, from the Flask class, converting a simple python function to a REST API endpoint (function)
 
 ## GRAB ENDPOINTS START
 @app.post("/driver-insert")
@@ -345,7 +588,7 @@ def create_app():
    return app
 
 # ? The port where the debuggable DB management API is served
-PORT = 2222
+PORT = 2223
 # ? Running the flask app on the localhost/0.0.0.0, port 2222
 # ? Note that you may change the port, then update it in the view application too to make it work (don't if you don't have another application occupying it)
 if __name__ == "__main__":

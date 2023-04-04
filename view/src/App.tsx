@@ -6,6 +6,10 @@ import RideView from './components/RideView'
 import NavBar from './components/NavBar'
 import Customers from './components/Customers'
 import Drivers from './components/Drivers'
+import FoodView from './components/FoodView'
+import GroceriesView from './components/GroceriesView'
+import Field from './components/Field'
+import Ewallet from './components/Ewallet'
 
 // ? This interface/object template/class - defines the JSON structure of the displayed table/relation for this application
 export interface RelationView {
@@ -41,6 +45,9 @@ function App() {
     'ride-sharing': <RideView />,
     customers: <Customers />,
     drivers: <Drivers />,
+    'grocery-delivery': <GroceriesView />,
+    'food-delivery': <FoodView />,
+    'ewallet': <Ewallet />
   }
   return (
     // ? The main block containing all the editible DOM elements

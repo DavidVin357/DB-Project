@@ -20,3 +20,21 @@
   display: flex;
   flex-direction: column;
 }
+
+.navbar {
+  display: flex;
+  list-style-type: none;
+}
+.navbar li {
+  padding-right: 15px;
+  cursor: pointer;
+}
+
+.tables {
+  display: flex;
+  flex-direction: column;
+}
+.users-table {
+  display: flex;
+  flex-direction: column;
+}

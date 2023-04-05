@@ -3,17 +3,16 @@ import './App.scss'
 import { ThemeProvider } from 'theme-ui'
 import { theme } from './theme'
 
-import TableView from './components/TableView'
-import EditView from './components/EditView'
-import { ReactComponentElement, useState } from 'react'
+import { useState } from 'react'
 import RideView from './components/RideView'
-import NavBar from './components/NavBar'
 import Customers from './components/Customers'
 import Drivers from './components/Drivers'
 import FoodView from './components/FoodView'
 import GroceriesView from './components/GroceriesView'
-import Field from './components/Field'
 import Ewallet from './components/Ewallet'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Layout from './components/Layout'
+import NoPage from './components/NoPage'
 
 // ? This interface/object template/class - defines the JSON structure of the displayed table/relation for this application
 export interface RelationView {
@@ -32,32 +31,24 @@ function App() {
     columns: [],
     rows: [],
   })
-  const [currentTab, setCurrentTab] = useState('general')
-  const tabComponents: { [dtype: string]: JSX.Element } = {
-    general: (
-      <>
-        {/* Below component is the user edit menu to create/modify the required table. Refer to `handleRelationViewUpdate` to learn about props*/}
 
-        <EditView
-          relationView={currentRelationView}
-          onRelationChange={handleRelationViewUpdate}
-        />
-        {/* TableView component is just for displaying the table on the right side of the view */}
-        <TableView relationView={currentRelationView} />
-      </>
-    ),
-    'ride-sharing': <RideView />,
-    customers: <Customers />,
-    drivers: <Drivers />,
-    'grocery-delivery': <GroceriesView />,
-    'food-delivery': <FoodView />,
-    'ewallet': <Ewallet />
-  }
   return (
     // ? The main block containing all the editible DOM elements
     <ThemeProvider theme={theme}>
-      <NavBar onTabChange={(tabName) => setCurrentTab(tabName)} />
-      <div id='main-view'>{tabComponents[currentTab]}</div>
+      <BrowserRouter>
+        <Routes>
+          <Route path='/' element={<Layout />}>
+            <Route index element={<RideView />} />
+            <Route path='customers' element={<Customers />} />
+            <Route path='drivers' element={<Drivers />} />
+            <Route path='ewallet' element={<Ewallet />} />
+            <Route path='food-order' element={<FoodView />} />
+            <Route path='grocery-order' element={<GroceriesView />} />
+            <Route path='*' element={<NoPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+      {/* <div id='main-view'>{tabComponents[currentTab]}</div> */}
     </ThemeProvider>
   )
 

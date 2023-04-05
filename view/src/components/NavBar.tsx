@@ -1,24 +1,15 @@
-import { Heading, Text } from 'theme-ui'
-
-interface NavBarProps {
-  onTabChange: (tabName: string) => void
-}
-
-const NavBar = (props: NavBarProps) => {
+import { Flex } from 'theme-ui'
+import NavItem from '../components/NavItem'
+const NavBar = () => {
   return (
-      <ul className='navbar'>
-        <li onClick={() => props.onTabChange('general')}>General</li>
-        <li onClick={() => props.onTabChange('ride-sharing')}>Ride Sharing</li>
-        <li onClick={() => props.onTabChange('customers')}>Customers</li>
-        <li onClick={() => props.onTabChange('drivers')}>Drivers</li>
-        <li onClick={() => props.onTabChange('e-wallet')}>E-Wallet</li>
-        <li onClick={() => props.onTabChange('food-delivery')}>
-          Food Delivery
-        </li>
-        <li onClick={() => props.onTabChange('grocery-delivery')}>
-          Grocery Delivery
-        </li>
-      </ul>
+    <Flex as='nav'>
+      <NavItem href='/'>Order Ride</NavItem>
+      <NavItem href='/customers'>Customers</NavItem>
+      <NavItem href='/drivers'>Drivers</NavItem>
+      <NavItem href='/ewallet'>E-Wallet</NavItem>
+      <NavItem href='/food-order'>Order Food</NavItem>
+      <NavItem href='/grocery-order'>Order Food</NavItem>
+    </Flex>
   )
 }
 

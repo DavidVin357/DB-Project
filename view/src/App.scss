@@ -1,23 +1,26 @@
 table,
 th,
 td {
-    border: 1px solid;
+  border: 1px solid;
+}
+td {
+  padding: 5px;
 }
 
 th {
-    padding: 5px;
+  padding: 5px;
 }
 
 #main-view {
-    display: block;
-    width: 100%;
+  display: block;
+  width: 100%;
 
-    #sub-view {
-        display: inline-block;
-        width: 50%;
-        float: left;
-        margin-bottom: 20px;
-    }
+  #sub-view {
+    display: inline-block;
+    width: 50%;
+    float: left;
+    margin-bottom: 20px;
+  }
 }
 
 // .field-rows {
@@ -29,71 +32,71 @@ th {
 // }
 
 .horizontal-alignment {
-    display: flex;
+  display: flex;
 }
 
 .horizontal-alignment {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    height: 20px;
-    margin-top: 10px;
-    margin-right: 15px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  height: 20px;
+  margin-top: 10px;
+  margin-right: 15px;
 }
 
 .create-relation-button {
-    margin-top: 50px;
+  margin-top: 50px;
 }
 
 .relation-name {
-    margin: 20px 0 20px 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  margin: 20px 0 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .value-deletion {
-    margin-top: 7%;
-    font-size: 20px;
+  margin-top: 7%;
+  font-size: 20px;
 
-    input {
-        width: 5%;
-        margin-right: 10px;
-    }
+  input {
+    width: 5%;
+    margin-right: 10px;
+  }
 
-    p {
-        width: 90%;
-    }
+  p {
+    width: 90%;
+  }
 }
 
 p {
-    margin: 0;
+  margin: 0;
 }
 
 .value-insertion {
-    margin: 40px 0 0 0;
+  margin: 40px 0 0 0;
 
-    p {
-        font-size: 20px;
-        margin: 10px 0 10px 0;
-    }
+  p {
+    font-size: 20px;
+    margin: 10px 0 10px 0;
+  }
 
-    .row-value {
-        display: flex;
-        align-items: center;
-    }
+  .row-value {
+    display: flex;
+    align-items: center;
+  }
 }
 
 .value-modification {
-    margin: 40px 0 0 0;
+  margin: 40px 0 0 0;
 
-    p {
-        font-size: 20px;
-        margin: 10px 0 10px 0;
-    }
+  p {
+    font-size: 20px;
+    margin: 10px 0 10px 0;
+  }
 
-    .row-value {
-        display: flex;
-        align-items: center;
-    }
+  .row-value {
+    display: flex;
+    align-items: center;
+  }
 }

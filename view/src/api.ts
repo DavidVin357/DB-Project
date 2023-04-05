@@ -131,3 +131,21 @@ export async function createTransaction(transaction_data: any) {
   alert(`Failed to create the transaction order!\nError:\n${res.data}`)
   return false
 }
+
+export async function confirmRide(id: string) {
+  let res = await api.put('/ride-confirm', { id })
+  if (res.ok) {
+    return true
+  }
+  alert(`Failed to confirm the ride order!\nError:\n${res.data}`)
+  return false
+}
+
+export async function cancelRide(id: string) {
+  let res = await api.put('/ride-cancel', { id })
+  if (res.ok) {
+    return true
+  }
+  alert(`Failed to cancel the ride order!\nError:\n${res.data}`)
+  return false
+}

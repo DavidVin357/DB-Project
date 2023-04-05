@@ -1,32 +1,56 @@
+import { Box, Button, Flex } from 'theme-ui'
 import { RelationView } from '../App'
+import * as api from '../api'
 
 interface TableViewProps {
   relationView: RelationView
+  actions?: Array<{
+    name: string
+    handler: (row: any) => void
+    props?: any
+  }>
 }
 
-const TableView = (props: TableViewProps) => {
+const TableView = ({ relationView, actions = [] }: TableViewProps) => {
   return (
-    <div id='sub-view'>
+    <Box>
       {/* <p>The view of you relation:</p> */}
-      {props.relationView.columns.length > 0 && (
+      {relationView.columns.length > 0 && (
         <table>
           <tr>
-            {props.relationView.columns.map((col) => {
-              return <th>{col}</th>
+            {relationView.columns.map((col) => {
+              return col !== 'id' ? <th>{col}</th> : null
             })}
+            {actions.length !== 0 && <th>Actions</th>}
           </tr>
-          {props.relationView.rows.map((row) => {
+          {relationView.rows.map((row, rowIndex) => {
             return (
-              <tr>
-                {props.relationView.columns.map((col) => {
-                  return <td>{row[col]}</td>
+              <tr key={rowIndex}>
+                {relationView.columns.map((col, colIndex) => {
+                  row[col]
+                  return col !== 'id' ? (
+                    <td key={colIndex}>{row[col].toString()}</td>
+                  ) : null
                 })}
+                {actions.length !== 0 && (
+                  <td>
+                    <Flex sx={{ gap: 1 }}>
+                      {actions.map((action) => (
+                        <Button
+                          onClick={() => action.handler(row)}
+                          {...action.props}>
+                          {action.name}
+                        </Button>
+                      ))}
+                    </Flex>
+                  </td>
+                )}
               </tr>
             )
           })}
         </table>
       )}
-    </div>
+    </Box>
   )
 }
 

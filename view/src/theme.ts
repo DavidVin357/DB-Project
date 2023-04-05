@@ -10,6 +10,7 @@ export const theme: Theme = {
     text: '#000',
     background: '#fff',
     primary: '#33e',
+    danger: '#C75146',
   },
   buttons: {
     primary: {

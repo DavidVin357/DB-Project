@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { RelationView } from '../App'
 import Field from './Field'
 import * as api from '../api'
 import TableView from './TableView'
-import { Heading } from 'theme-ui'
+import { Button, Heading } from 'theme-ui'
 const Ewallet = () => {
   const [transactionsData, setTransactionsData] = useState<RelationView>()
 
@@ -62,9 +62,9 @@ const Ewallet = () => {
             value={Amount}
             onChange={(e) => setAmount(e.target.value)}
           />
-          <button onClick={handleTransactionCreation} type='reset'>
+          <Button onClick={handleTransactionCreation} type='reset'>
             Create transaction
-          </button>
+          </Button>
         </form>
       </div>
       <div className='transactions'>

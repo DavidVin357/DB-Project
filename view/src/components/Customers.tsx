@@ -11,22 +11,29 @@ const Customers = () => {
   const [customerEmail, setCustomerEmail] = useState('')
   const [customerFirstName, setCustomerFirstName] = useState('')
   const [customerLastName, setCustomerLastName] = useState('')
+  const [creditCardNumber, setCreditCardNumber] = useState('')
 
   useEffect(() => {
-    api.getRelation('customers').then((data) => {
-      setCustomersData(data)
-    })
+    refreshTable()
   }, [])
+
   const clearValues = () => {
     setCustomerEmail('')
     setCustomerFirstName('')
     setCustomerLastName('')
+    setCreditCardNumber('')
+  }
+  const refreshTable = () => {
+    api.getRelation('customers').then((data) => {
+      setCustomersData(data)
+    })
   }
   const handleCustomerCreation = async () => {
     const insertionData = {
       email: customerEmail,
       first_name: customerFirstName,
       last_name: customerLastName,
+      credit_card: creditCardNumber,
     }
 
     for (const [key, value] of Object.entries(insertionData)) {
@@ -45,9 +52,17 @@ const Customers = () => {
     clearValues()
 
     // Refresh Orders table
-    api.getRelation('customers').then((data) => {
-      setCustomersData(data)
-    })
+    refreshTable()
+  }
+
+  const deleteCustomer = (row: any) => {
+    api
+      .deleteEntry({
+        tableName: 'customers',
+        primaryKeyName: 'email',
+        primaryKeyValue: row['email'],
+      })
+      .then(() => refreshTable())
   }
 
   return (
@@ -76,6 +91,13 @@ const Customers = () => {
             value={customerLastName}
             onChange={(e) => setCustomerLastName(e.target.value)}
           />
+          <Field
+            fieldType='text'
+            fieldName='credit_Card'
+            title='Credit card number'
+            value={creditCardNumber}
+            onChange={(e) => setCreditCardNumber(e.target.value)}
+          />
           <Button onClick={handleCustomerCreation} type='reset'>
             Create customer
           </Button>
@@ -85,7 +107,16 @@ const Customers = () => {
         <Heading>Current customers</Heading>
 
         {customersData?.rows.length ? (
-          <TableView relationView={customersData} />
+          <TableView
+            relationView={customersData}
+            actions={[
+              {
+                name: 'Remove',
+                handler: deleteCustomer,
+                props: { bg: 'danger' },
+              },
+            ]}
+          />
         ) : (
           <h3>No customers yet</h3>
         )}

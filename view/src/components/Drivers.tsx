@@ -16,9 +16,7 @@ const Drivers = () => {
 
   // Initial load of current drivers
   useEffect(() => {
-    api.getRelation('drivers').then((data) => {
-      setCurrentDrivers(data)
-    })
+    refreshTable()
   }, [])
 
   const clearValues = () => {
@@ -27,6 +25,13 @@ const Drivers = () => {
     setDriverLastName('')
     setLicenseNumber('')
     setCarNumber('')
+  }
+
+  const refreshTable = () => {
+    // Refresh Orders table
+    api.getRelation('drivers').then((data) => {
+      setCurrentDrivers(data)
+    })
   }
   const handleDriverCreation = async () => {
     const insertionData = {
@@ -47,14 +52,19 @@ const Drivers = () => {
     if (!success) {
       return
     }
-
+    refreshTable()
     // Clear fields
     clearValues()
+  }
 
-    // Refresh Orders table
-    api.getRelation('drivers').then((data) => {
-      setCurrentDrivers(data)
-    })
+  const deleteDriver = (row: any) => {
+    api
+      .deleteEntry({
+        tableName: 'drivers',
+        primaryKeyName: 'email',
+        primaryKeyValue: row['email'],
+      })
+      .then(() => refreshTable())
   }
 
   return (
@@ -106,7 +116,16 @@ const Drivers = () => {
         <Heading>Current drivers</Heading>
 
         {currentDrivers?.rows.length ? (
-          <TableView relationView={currentDrivers} />
+          <TableView
+            relationView={currentDrivers}
+            actions={[
+              {
+                name: 'Remove',
+                handler: deleteDriver,
+                props: { bg: 'danger' },
+              },
+            ]}
+          />
         ) : (
           <Heading as='h3'>No drivers yet</Heading>
         )}

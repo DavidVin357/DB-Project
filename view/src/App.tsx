@@ -6,10 +6,12 @@ import { theme } from './theme'
 import { useState } from 'react'
 import RideView from './components/RideView'
 import Customers from './components/Customers'
+import Topups from './components/Topups'
 import Drivers from './components/Drivers'
 import FoodView from './components/FoodView'
 import GroceriesView from './components/GroceriesView'
-import Ewallet from './components/Ewallet'
+import Admin from './components/Admin'
+import Transactions from './components/Transactions'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import NoPage from './components/NoPage'
@@ -40,10 +42,12 @@ function App() {
           <Route path='/' element={<Layout />}>
             <Route index element={<RideView />} />
             <Route path='customers' element={<Customers />} />
+            <Route path='topups' element={<Topups />} />
             <Route path='drivers' element={<Drivers />} />
-            <Route path='ewallet' element={<Ewallet />} />
+            <Route path='transactions' element={<Transactions />} />
             <Route path='food-order' element={<FoodView />} />
             <Route path='grocery-order' element={<GroceriesView />} />
+            <Route path='admin' element={<Admin />} />
             <Route path='*' element={<NoPage />} />
           </Route>
         </Routes>

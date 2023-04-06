@@ -1,7 +1,7 @@
 const machineIP = 'localhost' // for local development
 
 // const machineIP = '172.25.77.195'
-const machinePort = '2223'
+const machinePort = '2222'
 const APP_URL = `http://${machineIP}:${machinePort}`
 
 export { APP_URL }

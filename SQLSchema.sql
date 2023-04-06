@@ -15,6 +15,14 @@ CREATE TABLE IF NOT EXISTS ewallets (
 	ewallet_balance INT CHECK (ewallet_balance>=0) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS topups (
+	id SERIAL PRIMARY KEY,
+	amount NUMERIC NOT NULL,
+	initial_balance NUMERIC references customers(ewallet_balance),
+	final_balance NUMERIC NOT NULL
+);
+
+
 CREATE TABLE IF NOT EXISTS drivers (
     first_name VARCHAR(64) NOT NULL,
 	last_name VARCHAR(64) NOT NULL,
@@ -48,7 +56,9 @@ CREATE TABLE IF NOT EXISTS groceriesorder (
 	order_time TIME NOT NULL,
 	order_date DATE NOT NULL,
 	price NUMERIC NOT NULL,
-	status VARCHAR(64) NOT NULL
+	status VARCHAR(64) NOT NULL,
+	id SERIAL PRIMARY KEY
+	transaction_id INT references transactions(id)
 );
 
 CREATE TABLE IF NOT EXISTS businesses (
@@ -75,5 +85,7 @@ CREATE TABLE IF NOT EXISTS foodorder (
 	order_time TIME NOT NULL,
 	order_date DATE NOT NULL,
 	price NUMERIC NOT NULL,
-	status VARCHAR(64) NOT NULL
+	status VARCHAR(64) NOT NULL,
+	id SERIAL PRIMARY KEY
+	transaction_id INT references transactions(id)
 );

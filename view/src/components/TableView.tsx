@@ -17,37 +17,42 @@ const TableView = ({ relationView, actions = [] }: TableViewProps) => {
       {/* <p>The view of you relation:</p> */}
       {relationView.columns.length > 0 && (
         <table>
-          <tr>
-            {relationView.columns.map((col) => {
-              return col !== 'id' ? <th>{col}</th> : null
+          <tbody>
+            <tr>
+              {relationView.columns.map((col, colIndex) => {
+                return !col.includes('id') ? (
+                  <th key={colIndex}>{col}</th>
+                ) : null
+              })}
+              {actions.length !== 0 && <th>Actions</th>}
+            </tr>
+            {relationView.rows.map((row, rowIndex) => {
+              return (
+                <tr key={rowIndex}>
+                  {relationView.columns.map((col, colIndex) => {
+                    row[col]
+                    return !col.includes('id') ? (
+                      <td key={colIndex}>{row[col]?.toString()}</td>
+                    ) : null
+                  })}
+                  {actions.length !== 0 && (
+                    <td>
+                      <Flex sx={{ gap: 1 }}>
+                        {actions.map((action, actionIndex) => (
+                          <Button
+                            key={actionIndex}
+                            onClick={() => action.handler(row)}
+                            {...action.props}>
+                            {action.name}
+                          </Button>
+                        ))}
+                      </Flex>
+                    </td>
+                  )}
+                </tr>
+              )
             })}
-            {actions.length !== 0 && <th>Actions</th>}
-          </tr>
-          {relationView.rows.map((row, rowIndex) => {
-            return (
-              <tr key={rowIndex}>
-                {relationView.columns.map((col, colIndex) => {
-                  row[col]
-                  return col !== 'id' ? (
-                    <td key={colIndex}>{row[col].toString()}</td>
-                  ) : null
-                })}
-                {actions.length !== 0 && (
-                  <td>
-                    <Flex sx={{ gap: 1 }}>
-                      {actions.map((action) => (
-                        <Button
-                          onClick={() => action.handler(row)}
-                          {...action.props}>
-                          {action.name}
-                        </Button>
-                      ))}
-                    </Flex>
-                  </td>
-                )}
-              </tr>
-            )
-          })}
+          </tbody>
         </table>
       )}
     </Box>

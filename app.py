@@ -107,7 +107,7 @@ def insert_ride():
     try:
         post_data = json.loads(data)
         
-        # get random available driver
+        # Get random available driver
         random_driver_statement = sqlalchemy.text("""
         SELECT d.email 
         FROM drivers d
@@ -123,13 +123,28 @@ def insert_ride():
         
         random_driver_email = first_driver[0]
 
-        # generate random price
+        # Set price, status, available driver email
         post_data['price'] = random.randint(1, 100)
-        
         post_data['status'] = 'PENDING'
         post_data['driver_email'] = random_driver_email
 
-        insert = {
+        # Insert pending transaction and return its id
+        transaction_insert_statement = sqlalchemy.text(f"""
+            INSERT INTO transactions (customer_email, driver_email, amount, status)
+            VALUES ('{post_data['customer_email']}',
+                    '{post_data['driver_email']}',
+                     {post_data['price']},
+                    'PENDING'
+               )
+            RETURNING id
+               ;
+        """)
+        transaction_id = db.execute(transaction_insert_statement).first()[0]
+
+        post_data['transaction_id'] = transaction_id
+
+        # Insert pending ride 
+        ride_insert = {
             'name': 'rides',
             'body': post_data,
             'valueTypes': {
@@ -141,10 +156,13 @@ def insert_ride():
                 'departure_date': 'DATE',
                 'price': 'INT',
                 'status': 'TEXT',
+                'transaction_id': 'INT'
             }
         }
-        statement = generate_insert_table_statement(insert)
-        db.execute(statement)
+        
+        ride_insert_statement = generate_insert_table_statement(ride_insert)
+
+        db.execute(ride_insert_statement)
         db.commit()
         return Response(data)
     except Exception as e:
@@ -156,13 +174,22 @@ def confirm_ride():
     try:
         data = request.data.decode()
         post_data = json.loads(data)
+
+        # Confirm ride and transaction
         confirm_statement = sqlalchemy.text(f"""
                 UPDATE rides
                 SET status = 'CONFIRMED' 
                 WHERE id='{post_data['id']}'
                 ;
-                """)
 
+                UPDATE transactions
+                SET status = 'CONFIRMED'
+                WHERE id = ( SELECT transaction_id
+                             FROM rides
+                             WHERE id ={post_data['id']}
+                           );
+                """)
+        # Add ride price to the driver's ewallet and set the availability to FALSE
         deposit_statement = sqlalchemy.text(f"""
         UPDATE drivers
         SET is_available = FALSE, ewallet_balance = ewallet_balance + price
@@ -173,7 +200,7 @@ def confirm_ride():
         drivers.email = rides.driver_email
         ;"""
     )
-
+        # Deduct price from customer's ewallet
         deduct_statement = sqlalchemy.text(f"""
         UPDATE customers
         SET ewallet_balance = ewallet_balance - price
@@ -184,7 +211,7 @@ def confirm_ride():
         customers.email = rides.customer_email
         ;
         """)     
-
+        
         db.execute(confirm_statement)
         db.execute(deposit_statement)
         db.execute(deduct_statement)
@@ -223,16 +250,26 @@ def cancel_ride():
         ;
         """)     
 
-
-        delete_statement = generate_delete_statement(details={
+        transaction_id = db.execute(sqlalchemy.text(f"""
+                SELECT transaction_id 
+                from rides WHERE id = '{post_data['id']}';""")).first()[0]
+        
+        delete_ride_statement = generate_delete_statement(details={
             'tableName': 'rides',
             'primaryKeyName': 'id',
             'primaryKeyValue': post_data['id']
             })
         
+        delete_transaction_statement = generate_delete_statement(details={
+            'tableName': 'transactions',
+            'primaryKeyName': 'id',
+            'primaryKeyValue': transaction_id
+            })
+        
         db.execute(return_money_statement)
         db.execute(cancel_driver_order_statement)
-        db.execute(delete_statement)
+        db.execute(delete_ride_statement)
+        db.execute(delete_transaction_statement)
 
         db.commit()
         return Response(data)

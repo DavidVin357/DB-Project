@@ -1,10 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { RelationView } from '../App'
 import Field from './Field'
 import * as api from '../api'
 import TableView from './TableView'
 import { Button, Heading } from 'theme-ui'
 const Ewallet = () => {
+  // Refresh table on initial page load
+  useEffect(() => {
+    api.getRelation('transactions').then((data) => {
+      setTransactionsData(data)
+    })
+  }, [])
   const [transactionsData, setTransactionsData] = useState<RelationView>()
 
   const [CustomerEmail, setCustomerEmail] = useState('')

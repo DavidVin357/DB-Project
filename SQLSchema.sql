@@ -1,3 +1,6 @@
+CREATE TYPE STATUS AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED');
+
+
 CREATE TABLE IF NOT EXISTS customers (
     first_name VARCHAR(64) NOT NULL,
 	last_name VARCHAR(64) NOT NULL,
@@ -11,10 +14,10 @@ CREATE TABLE IF NOT EXISTS drivers (
     first_name VARCHAR(64) NOT NULL,
 	last_name VARCHAR(64) NOT NULL,
 	email VARCHAR(64) PRIMARY KEY,
-	license_number CHAR(9) UNIQUE NOT NULL CHECK (length(license_number) = 9),
-	car_number CHAR(8) UNIQUE NOT NULL CHECK (length(car_number) = 8),
-	ewallet_balance INT CHECK (ewallet_balance>=0) NOT NULL
-	
+	license_number CHAR(9) CHECK (length(license_number) = 9) UNIQUE NOT NULL,
+	car_number CHAR(8) CHECK (length(car_number) = 8) UNIQUE NOT NULL,
+	ewallet_balance INT CHECK (ewallet_balance>=0) NOT NULL,
+	is_available BOOLEAN
 );
 
 CREATE TABLE IF NOT EXISTS rides (
@@ -25,8 +28,9 @@ CREATE TABLE IF NOT EXISTS rides (
 	departure_time TIME NOT NULL,
 	departure_date DATE NOT NULL,
 	price NUMERIC NOT NULL,
-	status VARCHAR(64) NOT NULL,
-	PRIMARY KEY (customer_email, driver_email, departure_date, departure_time)
+	status STATUS NOT NULL,
+	id int AUTO INCREMENT,
+	PRIMARY KEY id
 );
 	
 
@@ -49,11 +53,10 @@ CREATE TABLE IF NOT EXISTS businesses (
 );
 
 CREATE TABLE IF NOT EXISTS transactions (
-    customer_email VARCHAR(64) references customers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
-	drivers_email VARCHAR(64) references drivers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
+    customer_email VARCHAR(64) references customers(email),
+	driver_email VARCHAR(64) references drivers(email),
 	amount INT CHECK (amount>=0),
-	customer_ewallet INT references customers(ewallet_balance) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
-	drivers_ewallet INT references drivers(ewallet_balance) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
+	id SERIAL PRIMARY KEY
 );
 
 

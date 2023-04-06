@@ -12,6 +12,8 @@ import sqlalchemy
 from typing import Dict
 
 import random
+import uuid
+
 from datetime import date, time
 from psycopg2 import OperationalError
 # ? web-based applications written in flask are simply called apps are initialized in this format from the Flask base class. You may see the contents of `__name__` by hovering on it while debugging if you're curious
@@ -47,7 +49,8 @@ def insert_driver():
 
     try:
         post_data = json.loads(data)
-
+        post_data['ewallet_balance'] = 0
+        post_data['is_available'] = True
         insert = {
             'name': 'drivers',
             'body': post_data,
@@ -57,7 +60,8 @@ def insert_driver():
                 'last_name': 'TEXT',
                 'license_number': 'TEXT',
                 'car_number': 'TEXT',
-                'ewallet_balance': 'INT'
+                'ewallet_balance': 'INT',
+                'is_available': 'BOOL'
             }
         }
 
@@ -75,7 +79,7 @@ def insert_customer():
     data = request.data.decode()
     try:
         post_data = json.loads(data)
-
+        post_data['ewallet_balance'] = 0
         insert = {
             'name': 'customers',
             'body': post_data,
@@ -83,7 +87,8 @@ def insert_customer():
                 'email': 'TEXT',
                 'first_name': 'TEXT',
                 'last_name': 'TEXT',
-                'ewallet_balance': 'INT'
+                'ewallet_balance': 'INT',
+                'credit_card': 'TEXT'
             }
         }
 
@@ -102,17 +107,28 @@ def insert_ride():
     try:
         post_data = json.loads(data)
         
+        # get random available driver
         random_driver_statement = sqlalchemy.text("""
-        SELECT email FROM drivers
+        SELECT d.email 
+        FROM drivers d
+        WHERE d.is_available IS TRUE 
         ORDER BY RANDOM()
         LIMIT 1
         """) 
         res = db.execute(random_driver_statement)
-        random_driver_email = res.first()[0]
 
+        first_driver = res.first()
+        if first_driver is None:
+            return Response('No drivers available!', 403)
+        
+        random_driver_email = first_driver[0]
+
+        # generate random price
         post_data['price'] = random.randint(1, 100)
+        
         post_data['status'] = 'PENDING'
         post_data['driver_email'] = random_driver_email
+
         insert = {
             'name': 'rides',
             'body': post_data,
@@ -124,7 +140,7 @@ def insert_ride():
                 'departure_time': 'TIME',
                 'departure_date': 'DATE',
                 'price': 'INT',
-                'status': 'TEXT'
+                'status': 'TEXT',
             }
         }
         statement = generate_insert_table_statement(insert)
@@ -135,6 +151,94 @@ def insert_ride():
         db.rollback()
         return Response(str(e.__dict__['orig']), 403)
 
+@app.put("/ride-confirm")
+def confirm_ride():
+    try:
+        data = request.data.decode()
+        post_data = json.loads(data)
+        confirm_statement = sqlalchemy.text(f"""
+                UPDATE rides
+                SET status = 'CONFIRMED' 
+                WHERE id='{post_data['id']}'
+                ;
+                """)
+
+        deposit_statement = sqlalchemy.text(f"""
+        UPDATE drivers
+        SET is_available = FALSE, ewallet_balance = ewallet_balance + price
+        FROM rides
+        WHERE 
+        rides.id = '{post_data['id']}'
+        AND
+        drivers.email = rides.driver_email
+        ;"""
+    )
+
+        deduct_statement = sqlalchemy.text(f"""
+        UPDATE customers
+        SET ewallet_balance = ewallet_balance - price
+        FROM rides
+        WHERE 
+        rides.id = '{post_data['id']}'
+        AND
+        customers.email = rides.customer_email
+        ;
+        """)     
+
+        db.execute(confirm_statement)
+        db.execute(deposit_statement)
+        db.execute(deduct_statement)
+
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403) 
+
+@app.put("/ride-cancel")
+def cancel_ride():
+    try:
+        data = request.data.decode()
+        post_data = json.loads(data)
+
+        cancel_driver_order_statement = sqlalchemy.text(f"""
+        UPDATE drivers
+        SET is_available = TRUE, ewallet_balance = ewallet_balance - price
+        FROM rides
+        WHERE 
+        rides.id = '{post_data['id']}'
+        AND
+        drivers.email = rides.driver_email
+        ;"""
+    )
+
+        return_money_statement = sqlalchemy.text(f"""
+        UPDATE customers
+        SET ewallet_balance = ewallet_balance + price
+        FROM rides
+        WHERE 
+        rides.id = '{post_data['id']}'
+        AND
+        customers.email = rides.customer_email
+        ;
+        """)     
+
+
+        delete_statement = generate_delete_statement(details={
+            'tableName': 'rides',
+            'primaryKeyName': 'id',
+            'primaryKeyValue': post_data['id']
+            })
+        
+        db.execute(return_money_statement)
+        db.execute(cancel_driver_order_statement)
+        db.execute(delete_statement)
+
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403) 
 @app.post("/grocery-insert")
 def insert_grocery():
     data = request.data.decode()
@@ -420,10 +524,11 @@ def generate_table_return_result(res):
 
 def generate_delete_statement(details: Dict):
     # ? Fetches the entry id for the table name
-    table_name = details["relationName"]
-    id = details["deletionId"]
+    table_name = details["tableName"]
+    primary_key_name = details["primaryKeyName"]
+    primary_key_value = "'" + details["primaryKeyValue"] + "'" if type(details["primaryKeyValue"]) is str else details["primaryKeyValue"]
     # ? Generates the deletion query for the given entry with the id
-    statement = f"DELETE FROM {table_name} WHERE id={id};"
+    statement = f"DELETE FROM {table_name} WHERE {primary_key_name}={primary_key_value};"
     return sqlalchemy.text(statement)
 
 

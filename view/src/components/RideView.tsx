@@ -88,6 +88,7 @@ const RideView = () => {
 
   const confirmRide = (row: any) => {
     api.confirmRide(row['id']).then(() => refreshTables())
+    
   }
 
   return (

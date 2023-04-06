@@ -1,5 +1,5 @@
-CREATE TYPE STATUS AS ENUM ('PENDING', 'CONFIRMED', 'CANCELLED');
-
+CREATE TYPE STATUS AS ENUM ('PENDING', 'CONFIRMED');
+CREATE TYPE ORDER_TYPE AS ENUM ('ride', 'food', 'grocery');
 
 CREATE TABLE IF NOT EXISTS customers (
     first_name VARCHAR(64) NOT NULL,
@@ -9,6 +9,11 @@ CREATE TABLE IF NOT EXISTS customers (
 	ewallet_balance INT CHECK (ewallet_balance>=0) NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS ewallets (
+    customer_email VARCHAR(64) references customers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
+	credit_card VARCHAR(64) references customers(credit_card) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
+	ewallet_balance INT CHECK (ewallet_balance>=0) NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS drivers (
     first_name VARCHAR(64) NOT NULL,
@@ -20,6 +25,7 @@ CREATE TABLE IF NOT EXISTS drivers (
 	is_available BOOLEAN
 );
 
+
 CREATE TABLE IF NOT EXISTS rides (
     customer_email VARCHAR(64) references customers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
 	driver_email VARCHAR(64) references drivers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
@@ -29,8 +35,8 @@ CREATE TABLE IF NOT EXISTS rides (
 	departure_date DATE NOT NULL,
 	price NUMERIC NOT NULL,
 	status STATUS NOT NULL,
-	id int AUTO INCREMENT,
-	PRIMARY KEY id
+	id SERIAL PRIMARY KEY,
+	transaction_id INT references transactions(id)
 );
 	
 
@@ -56,6 +62,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     customer_email VARCHAR(64) references customers(email),
 	driver_email VARCHAR(64) references drivers(email),
 	amount INT CHECK (amount>=0),
+	status STATUS NOT NULL,
 	id SERIAL PRIMARY KEY
 );
 

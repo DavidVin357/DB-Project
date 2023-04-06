@@ -110,17 +110,6 @@ export async function createGrocery(grocery_data: any) {
   return false
 }
 
-export async function createFood(food_data: any) {
-  let res = await api.post('/food-insert', food_data)
-
-  if (res.ok) {
-    console.log('Created food successfully!')
-    return true
-  }
-  alert(`Failed to create the food order!\nError:\n${res.data}`)
-  return false
-}
-
 export async function createTransaction(transaction_data: any) {
   let res = await api.post('/transaction-insert', transaction_data)
 
@@ -129,6 +118,35 @@ export async function createTransaction(transaction_data: any) {
     return true
   }
   alert(`Failed to create the transaction order!\nError:\n${res.data}`)
+  return false
+}
+
+export async function createTopups(topups_data: any) {
+  let res = await api.post('/topup-insert', topups_data)
+
+  if (res.ok) {
+    console.log('Created top up successfully!')
+    return true
+  }
+  alert(`Failed to create the top up!\nError:\n${res.data}`)
+  return false
+}
+
+export async function confirmTopup(id: string) {
+  let res = await api.put('/topup-confirm', { id })
+  if (res.ok) {
+    return true
+  }
+  alert(`Failed to confirm the topup!\nError:\n${res.data}`)
+  return false
+}
+
+export async function cancelTopup(id: string) {
+  let res = await api.put('/topup-cancel', { id })
+  if (res.ok) {
+    return true
+  }
+  alert(`Failed to cancel the topup!\nError:\n${res.data}`)
   return false
 }
 
@@ -147,5 +165,43 @@ export async function cancelRide(id: string) {
     return true
   }
   alert(`Failed to cancel the ride order!\nError:\n${res.data}`)
+  return false
+}
+
+export async function createFood(food_data: any) {
+  let res = await api.post('/food-insert', food_data)
+
+  if (res.ok) {
+    console.log('Created food successfully!')
+    return true
+  }
+  alert(`Failed to create the food order!\nError:\n${res.data}`)
+  return false
+}
+
+export async function confirmFood(id: string) {
+  let res = await api.put('/food-confirm', { id })
+  if (res.ok) {
+    return true
+  }
+  alert(`Failed to confirm the food order!\nError:\n${res.data}`)
+  return false
+}
+
+export async function cancelFood(id: string) {
+  let res = await api.put('/food-cancel', { id })
+  if (res.ok) {
+    return true
+  }
+  alert(`Failed to cancel the food order!\nError:\n${res.data}`)
+  return false
+}
+
+export async function cancelGroceries(id: string) {
+  let res = await api.put('/groceries-cancel', { id })
+  if (res.ok) {
+    return true
+  }
+  alert(`Failed to cancel the groceries order!\nError:\n${res.data}`)
   return false
 }

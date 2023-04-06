@@ -49,7 +49,7 @@ def insert_driver():
 
     try:
         post_data = json.loads(data)
-        post_data['ewallet_balance'] = 0
+        post_data['ewallet_balance'] = 100
         post_data['is_available'] = True
         insert = {
             'name': 'drivers',
@@ -79,7 +79,7 @@ def insert_customer():
     data = request.data.decode()
     try:
         post_data = json.loads(data)
-        post_data['ewallet_balance'] = 0
+        post_data['ewallet_balance'] = 100
         insert = {
             'name': 'customers',
             'body': post_data,
@@ -100,6 +100,105 @@ def insert_customer():
     except Exception as e:
         db.rollback()
         return Response(str(e.__dict__['orig']), 403)
+
+
+@app.post("/topup-insert")
+def insert_topup():
+    data = request.data.decode()
+    try:
+        post_data = json.loads(data)
+        
+        insert = {
+            'name': 'topups',
+            'body': post_data,
+            'valueTypes': {
+                'customer_email': 'TEXT',
+                'amount': 'INT'
+            }
+        }
+        statement = generate_insert_table_statement(insert)
+        db.execute(statement)
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403)
+    
+@app.put("/topup-confirm")
+def confirm_topup():
+    try:
+        data = request.data.decode()
+        post_data = json.loads(data)
+
+        # add topup amount to customer's ewallet
+        topup_statement = sqlalchemy.text(f"""
+        UPDATE customers
+        SET ewallet_balance = ewallet_balance + amount
+        FROM topups
+        WHERE 
+        topups.id = '{post_data['id']}'
+        AND
+        customers.email = topups.customer_email
+        ;
+        """)     
+        
+        db.execute(topup_statement)
+
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403) 
+    
+    
+@app.put("/topup-cancel")
+def cancel_topup():
+    try:
+        data = request.data.decode()
+        post_data = json.loads(data)
+
+        delete_topup_statement = sqlalchemy.text(f"""
+        DELETE
+        FROM topups
+        WHERE 
+        topups.id = '{post_data['id']}'
+        ;
+        """)  
+        
+        db.execute(delete_topup_statement)
+
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403) 
+
+
+@app.post("/ewallet-topup")
+def ewallet_topup():
+    try:
+        data = request.data.decode()
+        post_data = json.loads(data)
+        
+        #Topup the ewallet
+        topup_statement = sqlalchemy.text(f"""
+        UPDATE customers
+        SET ewallet_balance = ewallet_balance + amount
+        FROM topups
+        WHERE 
+        topups.id = '{post_data['id']}'
+        AND
+        customers.email = topups.customer_email
+        ;""")
+
+        db.execute(topup_statement)
+
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403)
+
 
 @app.post("/ride-insert")
 def insert_ride():
@@ -276,6 +375,7 @@ def cancel_ride():
     except Exception as e:
         db.rollback()
         return Response(str(e.__dict__['orig']), 403) 
+    
 @app.post("/grocery-insert")
 def insert_grocery():
     data = request.data.decode()
@@ -293,6 +393,21 @@ def insert_grocery():
         post_data['price'] = random.randint(1, 101)
         post_data['status'] = 'PENDING'
         post_data['driver_email'] = random_driver_email
+        
+        # Insert pending transaction and return its id
+        transaction_insert_statement = sqlalchemy.text(f"""
+            INSERT INTO transactions (customer_email, driver_email, amount, status)
+            VALUES ('{post_data['customer_email']}',
+                    '{post_data['driver_email']}',
+                     {post_data['price']},
+                    'PENDING'
+               )
+            RETURNING id
+               ;
+        """)
+        transaction_id = db.execute(transaction_insert_statement).first()[0]
+        post_data['transaction_id'] = transaction_id
+        
         insert = {
             'name': 'groceriesorder',
             'body': post_data,
@@ -314,6 +429,51 @@ def insert_grocery():
     except Exception as e:
         db.rollback()
         return Response(str(e.__dict__['orig']), 403)    
+    
+@app.put("/groceries-cancel")
+def cancel_groceries():
+    try:
+        data = request.data.decode()
+        post_data = json.loads(data)
+
+        cancel_driver_order_statement = sqlalchemy.text(f"""
+        UPDATE drivers
+        SET is_available = TRUE, ewallet_balance = ewallet_balance - price
+        FROM groceriesorder
+        WHERE 
+        groceriesorder.id = '{post_data['id']}'
+        AND
+        drivers.email = groceriesorder.driver_email
+        ;"""
+    )
+
+        return_money_statement = sqlalchemy.text(f"""
+        UPDATE customers
+        SET ewallet_balance = ewallet_balance + price
+        FROM groceriesorder
+        WHERE 
+        groceriesorder.id = '{post_data['id']}'
+        AND
+        customers.email = groceriesorder.customer_email
+        ;
+        """)     
+
+
+        delete_statement = generate_delete_statement(details={
+            'tableName': 'groceriesorder',
+            'primaryKeyName': 'id',
+            'primaryKeyValue': post_data['id']
+            })
+        
+        db.execute(return_money_statement)
+        db.execute(cancel_driver_order_statement)
+        db.execute(delete_statement)
+
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403) 
 
 
 @app.post("/transaction-insert")
@@ -349,17 +509,43 @@ def insert_food():
     try:
         post_data = json.loads(data)
         
+        # Get random available driver
         random_driver_statement = sqlalchemy.text("""
-        SELECT email FROM drivers
+        SELECT d.email 
+        FROM drivers d
+        WHERE d.is_available IS TRUE 
         ORDER BY RANDOM()
         LIMIT 1
-        """) 
+        """)
+        
         res = db.execute(random_driver_statement)
-        random_driver_email = res.first()[0]
-
+        
+        first_driver = res.first()
+        if first_driver is None:
+            return Response('No drivers available!', 403)
+        
+        random_driver_email = first_driver[0]
+        
+        #random_driver_email = res.first()[0]
         post_data['price'] = random.randint(1, 100)
         post_data['status'] = 'PENDING'
         post_data['driver_email'] = random_driver_email
+        
+        # Insert pending transaction and return its id
+        transaction_insert_statement = sqlalchemy.text(f"""
+            INSERT INTO transactions (customer_email, driver_email, amount, status)
+            VALUES ('{post_data['customer_email']}',
+                    '{post_data['driver_email']}',
+                     {post_data['price']},
+                    'PENDING'
+               )
+            RETURNING id
+               ;
+        """)
+        transaction_id = db.execute(transaction_insert_statement).first()[0]
+
+        post_data['transaction_id'] = transaction_id
+        
         insert = {
             'name': 'foodorder',
             'body': post_data,
@@ -371,16 +557,116 @@ def insert_food():
                 'order_time': 'TIME',
                 'order_date': 'DATE',
                 'price': 'INT',
-                'status': 'TEXT'
+                'status': 'TEXT',
+                'transaction_id': 'INT'
             }
-        }
+        } 
         statement = generate_insert_table_statement(insert)
         db.execute(statement)
+
         db.commit()
         return Response(data)
     except Exception as e:
         db.rollback()
         return Response(str(e.__dict__['orig']), 403)
+
+@app.put("/food-confirm")
+def confirm_food():
+    try:
+        data = request.data.decode()
+        post_data = json.loads(data)
+
+        # Confirm food and transaction
+        confirm_statement = sqlalchemy.text(f"""
+                UPDATE foodorder
+                SET status = 'CONFIRMED' 
+                WHERE id='{post_data['id']}'
+                ;
+
+                UPDATE transactions
+                SET status = 'CONFIRMED'
+                WHERE id = ( SELECT transaction_id
+                             FROM foodorder
+                             WHERE id ={post_data['id']}
+                           );
+                """)
+        # Add food price to the driver's ewallet and set the availability to FALSE
+        deposit_statement = sqlalchemy.text(f"""
+        UPDATE drivers
+        SET is_available = FALSE, ewallet_balance = ewallet_balance + price
+        FROM foodorder
+        WHERE 
+        foodorder.id = '{post_data['id']}'
+        AND
+        drivers.email = foodorder.driver_email
+        ;"""
+    )
+        # Deduct price from customer's ewallet
+        deduct_statement = sqlalchemy.text(f"""
+        UPDATE customers
+        SET ewallet_balance = ewallet_balance - price
+        FROM foodorder
+        WHERE 
+        foodorder.id = '{post_data['id']}'
+        AND
+        customers.email = foodorder.customer_email
+        ;
+        """)     
+        
+        db.execute(confirm_statement)
+        db.execute(deposit_statement)
+        db.execute(deduct_statement)
+
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403) 
+
+@app.put("/food-cancel")
+def cancel_food():
+    try:
+        data = request.data.decode()
+        post_data = json.loads(data)
+
+        cancel_driver_order_statement = sqlalchemy.text(f"""
+        UPDATE drivers
+        SET is_available = TRUE, ewallet_balance = ewallet_balance - price
+        FROM foodorder
+        WHERE 
+        foodorder.id = '{post_data['id']}'
+        AND
+        drivers.email = foodorder.driver_email
+        ;"""
+    )
+
+        return_money_statement = sqlalchemy.text(f"""
+        UPDATE customers
+        SET ewallet_balance = ewallet_balance + price
+        FROM foodorder
+        WHERE 
+        foodorder.id = '{post_data['id']}'
+        AND
+        customers.email = foodorder.customer_email
+        ;
+        """)     
+
+
+        delete_statement = generate_delete_statement(details={
+            'tableName': 'foodorder',
+            'primaryKeyName': 'id',
+            'primaryKeyValue': post_data['id']
+            })
+        
+        db.execute(return_money_statement)
+        db.execute(cancel_driver_order_statement)
+        db.execute(delete_statement)
+
+        db.commit()
+        return Response(data)
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403) 
     
 @app.post("/update-customer-ewallet")
 def update_customer_ewallet():
@@ -636,7 +922,7 @@ def create_app():
    return app
 
 # ? The port where the debuggable DB management API is served
-PORT = 2223
+PORT = 2222
 # ? Running the flask app on the localhost/0.0.0.0, port 2222
 # ? Note that you may change the port, then update it in the view application too to make it work (don't if you don't have another application occupying it)
 if __name__ == "__main__":

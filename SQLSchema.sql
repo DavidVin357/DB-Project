@@ -1,40 +1,37 @@
-CREATE TYPE STATUS AS ENUM ('PENDING', 'CONFIRMED');
-CREATE TYPE ORDER_TYPE AS ENUM ('ride', 'food', 'grocery');
-
 CREATE TABLE IF NOT EXISTS customers (
     first_name VARCHAR(64) NOT NULL,
 	last_name VARCHAR(64) NOT NULL,
 	email VARCHAR(64) PRIMARY KEY,
-	credit_card VARCHAR(64) NOT NULL,
-	ewallet_balance INT CHECK (ewallet_balance>=0) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS ewallets (
-    customer_email VARCHAR(64) references customers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
-	credit_card VARCHAR(64) references customers(credit_card) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
-	ewallet_balance INT CHECK (ewallet_balance>=0) NOT NULL
+	credit_card VARCHAR(20) NOT NULL,
+	ewallet_balance NUMERIC CHECK (ewallet_balance>=0) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS topups (
-	id SERIAL PRIMARY KEY,
-	amount NUMERIC NOT NULL,
-	initial_balance NUMERIC references customers(ewallet_balance),
-	final_balance NUMERIC NOT NULL
+  id SERIAL PRIMARY KEY,
+  amount NUMERIC NOT NULL CHECK (amount>0),
+  customer_email VARCHAR(64) references customers(email)
 );
 
-
 CREATE TABLE IF NOT EXISTS drivers (
+	email VARCHAR(64) PRIMARY KEY,
     first_name VARCHAR(64) NOT NULL,
 	last_name VARCHAR(64) NOT NULL,
-	email VARCHAR(64) PRIMARY KEY,
 	license_number CHAR(9) CHECK (length(license_number) = 9) UNIQUE NOT NULL,
 	car_number CHAR(8) CHECK (length(car_number) = 8) UNIQUE NOT NULL,
-	ewallet_balance INT CHECK (ewallet_balance>=0) NOT NULL,
+	ewallet_balance NUMERIC CHECK (ewallet_balance>=0) NOT NULL,
 	is_available BOOLEAN
 );
 
+CREATE TABLE IF NOT EXISTS transactions (
+	id SERIAL PRIMARY KEY,
+    customer_email VARCHAR(64) references customers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
+	driver_email VARCHAR(64) references drivers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
+	amount INT CHECK (amount>=0),
+	status STATUS NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS rides (
+	id SERIAL PRIMARY KEY,
     customer_email VARCHAR(64) references customers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
 	driver_email VARCHAR(64) references drivers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
 	start_location VARCHAR(64) NOT NULL,
@@ -43,12 +40,11 @@ CREATE TABLE IF NOT EXISTS rides (
 	departure_date DATE NOT NULL,
 	price NUMERIC NOT NULL,
 	status STATUS NOT NULL,
-	id SERIAL PRIMARY KEY,
-	transaction_id INT references transactions(id)
+	transaction_id INT references transactions(id) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED
 );
 	
-
 CREATE TABLE IF NOT EXISTS groceriesorder (
+	id SERIAL PRIMARY KEY,
 	customer_email VARCHAR(64) references customers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
 	driver_email VARCHAR(64) references drivers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
 	select_grocery VARCHAR(64) NOT NULL,
@@ -57,27 +53,18 @@ CREATE TABLE IF NOT EXISTS groceriesorder (
 	order_date DATE NOT NULL,
 	price NUMERIC NOT NULL,
 	status VARCHAR(64) NOT NULL,
-	id SERIAL PRIMARY KEY
 	transaction_id INT references transactions(id)
 );
 
 CREATE TABLE IF NOT EXISTS businesses (
-    fullname VARCHAR(64) NOT NULL,
 	email VARCHAR(64) PRIMARY KEY,
-	credit_card VARCHAR(64) NOT NULL, 
-	ewallet_balance INT CHECK (ewallet_balance>=0)
+    fullname VARCHAR(64) NOT NULL,
+	credit_card VARCHAR(20) NOT NULL, 
+	ewallet_balance NUMERIC CHECK (ewallet_balance>=0)
 );
-
-CREATE TABLE IF NOT EXISTS transactions (
-    customer_email VARCHAR(64) references customers(email),
-	driver_email VARCHAR(64) references drivers(email),
-	amount INT CHECK (amount>=0),
-	status STATUS NOT NULL,
-	id SERIAL PRIMARY KEY
-);
-
 
 CREATE TABLE IF NOT EXISTS foodorder (
+	id SERIAL PRIMARY KEY,
     customer_email VARCHAR(64) references customers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
 	driver_email VARCHAR(64) references drivers(email) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE INITIALLY DEFERRED,
 	select_restaurant VARCHAR(64) NOT NULL,
@@ -86,6 +73,5 @@ CREATE TABLE IF NOT EXISTS foodorder (
 	order_date DATE NOT NULL,
 	price NUMERIC NOT NULL,
 	status VARCHAR(64) NOT NULL,
-	id SERIAL PRIMARY KEY
 	transaction_id INT references transactions(id)
 );

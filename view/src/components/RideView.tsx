@@ -4,6 +4,7 @@ import { RelationView } from '../App'
 import Field from './Field'
 import * as api from '../api'
 import TableView from './TableView'
+import validateEmail from '../utils/validateEmail'
 
 const RideView = () => {
   const [customerEmail, setCustomerEmail] = useState('')
@@ -62,6 +63,11 @@ const RideView = () => {
     }
 
     for (const [key, value] of Object.entries(insertionData)) {
+      if (key === 'customer_email' && !validateEmail(value)) {
+        alert(`Invalid email provided`)
+        return
+      }
+
       if (!value) {
         alert(`${key} cannot be empty`)
         return
@@ -88,7 +94,6 @@ const RideView = () => {
 
   const confirmRide = (row: any) => {
     api.confirmRide(row['id']).then(() => refreshTables())
-    
   }
 
   return (

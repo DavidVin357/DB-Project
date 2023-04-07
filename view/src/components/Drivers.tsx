@@ -5,6 +5,7 @@ import { RelationView } from '../App'
 import Field from './Field'
 import * as api from '../api'
 import TableView from './TableView'
+import validateEmail from '../utils/validateEmail'
 
 const Drivers = () => {
   const [currentDrivers, setCurrentDrivers] = useState<RelationView>()
@@ -42,6 +43,11 @@ const Drivers = () => {
       car_number: carNumber,
     }
     for (const [key, value] of Object.entries(insertionData)) {
+      if (key === 'email' && !validateEmail(value)) {
+        alert(`Invalid email provided`)
+        return
+      }
+
       if (!value) {
         alert(`${key} cannot be empty`)
         return

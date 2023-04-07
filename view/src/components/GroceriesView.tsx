@@ -4,6 +4,7 @@ import Field from './Field'
 import * as api from '../api'
 import TableView from './TableView'
 import { Box, Button, Heading } from 'theme-ui'
+import validateEmail from '../utils/validateEmail'
 const Groceries = () => {
   const [customerEmail, setCustomerEmail] = useState('')
   const [SelectGrocery, setSelectGrocery] = useState('')
@@ -58,6 +59,11 @@ const Groceries = () => {
     }
 
     for (const [key, value] of Object.entries(insertionData)) {
+      if (key === 'customer_email' && !validateEmail(value)) {
+        alert(`Invalid email provided`)
+        return
+      }
+
       if (!value) {
         alert(`${key} cannot be empty`)
         return

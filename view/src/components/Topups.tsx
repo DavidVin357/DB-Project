@@ -4,6 +4,7 @@ import Field from './Field'
 import * as api from '../api'
 import TableView from './TableView'
 import { Button, Heading } from 'theme-ui'
+import validateEmail from '../utils/validateEmail'
 const Topups = () => {
   const [topupsData, setTopupsData] = useState<RelationView>()
   const [customersData, setCustomersData] = useState<RelationView>()
@@ -37,6 +38,11 @@ const Topups = () => {
     }
 
     for (const [key, value] of Object.entries(insertionData)) {
+      if (key === 'customer_email' && !validateEmail(value)) {
+        alert(`Invalid email provided`)
+        return
+      }
+
       if (!value) {
         alert(`${key} cannot be empty`)
         return

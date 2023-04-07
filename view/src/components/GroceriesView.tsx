@@ -3,7 +3,7 @@ import { RelationView } from '../App'
 import Field from './Field'
 import * as api from '../api'
 import TableView from './TableView'
-import { Button, Heading } from 'theme-ui'
+import { Box, Button, Heading } from 'theme-ui'
 const Groceries = () => {
   const [customerEmail, setCustomerEmail] = useState('')
   const [SelectGrocery, setSelectGrocery] = useState('')
@@ -77,24 +77,10 @@ const Groceries = () => {
       setGroceriesData(data)
     })
   }
-  const onCustomerEmailChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setCustomerEmail(e.target.value)
-
-  const onSelectGroceryChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setSelectGrocery(e.target.value)
-
-  const onReceivingLocation = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setReceivingLocation(e.target.value)
-
-  const onTimeChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setOrderTime(e.target.value)
-
-  const onDateChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setOrderDate(e.target.value)
 
   return (
-    <div className='container'>
-      <div className='order-grocery-view'>
+    <Box className='container'>
+      <Box className='order-grocery-view'>
         <Heading>Order Grocery</Heading>
         <Field
           fieldType='email'
@@ -132,7 +118,7 @@ const Groceries = () => {
           onChange={(e) => setOrderTime(e.target.value)}
         />
         <Button onClick={handleOrderCreation}>Order Grocery</Button>
-      </div>
+      </Box>
       <div className='tables'>
         <div className='order-table'>
           <Heading>Orders</Heading>
@@ -165,7 +151,7 @@ const Groceries = () => {
           </div>
         </div>
       </div>
-    </div>
+    </Box>
   )
 }
 

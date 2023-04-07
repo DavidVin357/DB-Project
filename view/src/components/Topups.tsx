@@ -5,6 +5,11 @@ import * as api from '../api'
 import TableView from './TableView'
 import { Button, Heading } from 'theme-ui'
 const Topups = () => {
+  const [topupsData, setTopupsData] = useState<RelationView>()
+  const [customersData, setCustomersData] = useState<RelationView>()
+
+  const [customerEmail, setCustomerEmail] = useState('')
+  const [amount, setAmount] = useState('')
 
   const refreshTable = () => {
     api.getRelation('topups').then((data) => {
@@ -15,19 +20,20 @@ const Topups = () => {
       setCustomersData(data)
     })
   }
+
+  const clearValues = () => {
+    setCustomerEmail('')
+
+    setAmount('')
+  }
   useEffect(() => {
     refreshTable()
   }, [])
-  const [topupsData, setTopupsData] = useState<RelationView>()
-  const [customersData, setCustomersData] = useState<RelationView>()
-
-  const [CustomerEmail, setCustomerEmail] = useState('')
-  const [Amount, setAmount] = useState('')
 
   const handleTopupCreation = async () => {
     const insertionData = {
-      customer_email: CustomerEmail,
-      amount: Amount
+      customer_email: customerEmail,
+      amount,
     }
 
     for (const [key, value] of Object.entries(insertionData)) {
@@ -44,14 +50,8 @@ const Topups = () => {
 
     // Refresh Topups table
     refreshTable()
-  }
 
-  const confirmTopup = (row: any) => {
-    api.confirmTopup(row['id']).then(() => refreshTable())
-  }
-
-  const cancelTopup = (row: any) => {
-    api.cancelTopup(row['id']).then(() => refreshTable())
+    clearValues()
   }
 
   return (
@@ -63,14 +63,14 @@ const Topups = () => {
             fieldType='email'
             fieldName='customer_email'
             title='Customer Email'
-            value={CustomerEmail}
+            value={customerEmail}
             onChange={(e) => setCustomerEmail(e.target.value)}
           />
           <Field
             fieldType='number'
             fieldName='amount'
             title='Top up amount'
-            value={Amount}
+            value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />
           <Button onClick={handleTopupCreation} type='reset'>
@@ -79,40 +79,28 @@ const Topups = () => {
         </form>
       </div>
       <div className='tables'>
-          <div className='users-table'>
-            <div className='customers'>
-              <Heading as='h2'>Current customers</Heading>
+        <div className='users-table'>
+          <div className='customers'>
+            <Heading as='h2'>Current customers</Heading>
 
-              {customersData?.rows.length ? (
-                <TableView relationView={customersData} />
-              ) : (
-                <Heading as='h3'>No customers yet</Heading>
-              )}
-            </div>
-            <div className='topups'>
-              <Heading as='h2'>Current Topups</Heading>
+            {customersData?.rows.length ? (
+              <TableView relationView={customersData} />
+            ) : (
+              <Heading as='h3'>No customers yet</Heading>
+            )}
+          </div>
+          <div className='topups'>
+            <Heading as='h2'>Current Topups</Heading>
 
-              {topupsData?.rows.length ? (
-                <TableView relationView={topupsData} 
-                actions={[
-                  {
-                    name: 'Confirm',
-                    handler: confirmTopup,
-                    props: { bg: 'green' },
-                  },
-                  {
-                    name: 'Cancel',
-                    handler: cancelTopup,
-                    props: { bg: 'danger' },
-                  },
-                ]}/>
-              ) : (
-                <Heading as='h3'>No Topups yet</Heading>
-              )}
-            </div>
+            {topupsData?.rows.length ? (
+              <TableView relationView={topupsData} />
+            ) : (
+              <Heading as='h3'>No Topups yet</Heading>
+            )}
           </div>
         </div>
-        </div>
+      </div>
+    </div>
   )
 }
 

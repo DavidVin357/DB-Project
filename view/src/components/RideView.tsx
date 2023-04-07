@@ -92,7 +92,7 @@ const RideView = () => {
   }
 
   return (
-    <Flex sx={{ flexDirection: 'column', gap: 4 }}>
+    <Flex sx={{ flexDirection: 'column', gap: 4 }} py={3}>
       <Flex sx={{ justifyContent: 'space-around' }}>
         <div className='order-ride-view'>
           <Heading>Order Ride </Heading>

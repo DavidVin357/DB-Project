@@ -78,7 +78,7 @@ const FoodView = () => {
       setFoodsData(data)
     })
   }
-  
+
   const refreshTables = () => {
     api.getRelation('foodorder').then((data) => {
       setFoodsData(data)
@@ -100,12 +100,11 @@ const FoodView = () => {
     api.cancelFood(row['id']).then(() => refreshTables())
   }
 
-
   return (
-    <Flex sx={{ flexDirection: 'column', gap: 4 }}>
+    <Flex sx={{ flexDirection: 'column', gap: 4 }} py={3}>
       <Flex sx={{ justifyContent: 'space-around' }}>
-        <div className='order-ride-view'>
-          <Heading>Order Ride </Heading>
+        <div className='order-food-view'>
+          <Heading>Order Food </Heading>
           <Field
             fieldType='email'
             fieldName='customer_email'
@@ -116,7 +115,7 @@ const FoodView = () => {
           <Field
             fieldType='text'
             fieldName='select_restaurant'
-            title= 'Select Restaurant'
+            title='Select Restaurant'
             value={SelectRestaurant}
             onChange={(e) => setSelectRestaurant(e.target.value)}
           />

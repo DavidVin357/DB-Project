@@ -19,14 +19,6 @@ const Field = (props: FieldProps) => {
         onChange={props.onChange}
         type={props.fieldType}
       />
-
-      {/* <p>{props.title}: </p>
-      <input
-        name={props.fieldName}
-        type={props.fieldType}
-        value={props.value}
-        onChange={props.onChange}
-      /> */}
     </Box>
   )
 }

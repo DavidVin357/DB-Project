@@ -67,6 +67,10 @@ const Drivers = () => {
       .then(() => refreshTable())
   }
 
+  const switchAvailability = (row: any) => {
+    api.switchDriverAvailability(row['email']).then(() => refreshTable())
+  }
+
   return (
     <div className='container'>
       <div>
@@ -123,6 +127,11 @@ const Drivers = () => {
                 name: 'Remove',
                 handler: deleteDriver,
                 props: { bg: 'danger' },
+              },
+              {
+                name: 'Switch availability',
+                handler: switchAvailability,
+                props: { bg: 'green' },
               },
             ]}
           />

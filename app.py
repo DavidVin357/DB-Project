@@ -12,10 +12,8 @@ import sqlalchemy
 from typing import Dict
 
 import random
-import uuid
 
 from datetime import date, time
-from psycopg2 import OperationalError
 # ? web-based applications written in flask are simply called apps are initialized in this format from the Flask base class. You may see the contents of `__name__` by hovering on it while debugging if you're curious
 app = Flask(__name__)
 
@@ -74,6 +72,27 @@ def insert_driver():
         db.rollback()
         return Response(str(e.__dict__['orig']), 403)
 
+@app.patch("/switch-availability")
+def switch_availability():
+    data = request.data.decode()
+    try:
+        post_data = json.loads(data)
+
+        update_availability_statement = sqlalchemy.text(f"""
+         UPDATE drivers 
+         SET is_available = NOT is_available 
+         WHERE email = '{post_data['email']}'  
+         ;
+        """)
+
+        db.execute(update_availability_statement)
+        db.commit()
+        return Response(data)
+
+    except Exception as e:
+        db.rollback()
+        return Response(str(e.__dict__['orig']), 403)
+
 @app.post("/customer-insert")
 def insert_customer():
     data = request.data.decode()
@@ -108,7 +127,7 @@ def insert_topup():
     try:
         post_data = json.loads(data)
         
-        insert = {
+        insert_topup = {
             'name': 'topups',
             'body': post_data,
             'valueTypes': {
@@ -116,83 +135,15 @@ def insert_topup():
                 'amount': 'INT'
             }
         }
-        statement = generate_insert_table_statement(insert)
-        db.execute(statement)
-        db.commit()
-        return Response(data)
-    except Exception as e:
-        db.rollback()
-        return Response(str(e.__dict__['orig']), 403)
-    
-@app.put("/topup-confirm")
-def confirm_topup():
-    try:
-        data = request.data.decode()
-        post_data = json.loads(data)
-
-        # add topup amount to customer's ewallet
-        topup_statement = sqlalchemy.text(f"""
+        insert_topup_statement = generate_insert_table_statement(insert_topup)
+        update_balance_statement = sqlalchemy.text(f"""
         UPDATE customers
-        SET ewallet_balance = ewallet_balance + amount
-        FROM topups
-        WHERE 
-        topups.id = '{post_data['id']}'
-        AND
-        customers.email = topups.customer_email
+        SET ewallet_balance = ewallet_balance + {post_data['amount']}
+        WHERE email = '{post_data['customer_email']}'
         ;
-        """)     
-        
-        db.execute(topup_statement)
-
-        db.commit()
-        return Response(data)
-    except Exception as e:
-        db.rollback()
-        return Response(str(e.__dict__['orig']), 403) 
-    
-    
-@app.put("/topup-cancel")
-def cancel_topup():
-    try:
-        data = request.data.decode()
-        post_data = json.loads(data)
-
-        delete_topup_statement = sqlalchemy.text(f"""
-        DELETE
-        FROM topups
-        WHERE 
-        topups.id = '{post_data['id']}'
-        ;
-        """)  
-        
-        db.execute(delete_topup_statement)
-
-        db.commit()
-        return Response(data)
-    except Exception as e:
-        db.rollback()
-        return Response(str(e.__dict__['orig']), 403) 
-
-
-@app.post("/ewallet-topup")
-def ewallet_topup():
-    try:
-        data = request.data.decode()
-        post_data = json.loads(data)
-        
-        #Topup the ewallet
-        topup_statement = sqlalchemy.text(f"""
-        UPDATE customers
-        SET ewallet_balance = ewallet_balance + amount
-        FROM topups
-        WHERE 
-        topups.id = '{post_data['id']}'
-        AND
-        customers.email = topups.customer_email
-        ;""")
-
-        db.execute(topup_statement)
-
+        """)
+        db.execute(insert_topup_statement)
+        db.execute(update_balance_statement)
         db.commit()
         return Response(data)
     except Exception as e:
@@ -383,12 +334,20 @@ def insert_grocery():
         post_data = json.loads(data)
 
         random_driver_statement = sqlalchemy.text("""
-        SELECT email FROM drivers
+        SELECT d.email
+        FROM drivers d
+        WHERE d.is_available IS TRUE
         ORDER BY RANDOM()
         LIMIT 1
         """) 
         res = db.execute(random_driver_statement)
-        random_driver_email = res.first()[0]
+        
+        first_driver = res.first()
+        if first_driver is None:
+            return Response('No drivers available!', 403)
+        
+        random_driver_email = first_driver[0]
+
 
         post_data['price'] = random.randint(1, 101)
         post_data['status'] = 'PENDING'
@@ -419,7 +378,8 @@ def insert_grocery():
                 'order_time': 'TIME',
                 'order_date': 'DATE',
                 'price': 'INT',
-                'status': 'TEXT'
+                'status': 'TEXT',
+                'transaction_id': 'INT'
             }
         }
         statement = generate_insert_table_statement(insert)
@@ -476,33 +436,6 @@ def cancel_groceries():
         return Response(str(e.__dict__['orig']), 403) 
 
 
-@app.post("/transaction-insert")
-def insert_transactions():
-    data = request.data.decode()
-    try:
-        post_data = json.loads(data)
-
-        insert = {
-            'name': 'transactions',
-            'body': post_data,
-            'valueTypes': {
-                'customer_email': 'TEXT',
-                'driver_email': 'TEXT',
-                'amount': 'INT',
-                'customer_ewallet': 'INT',
-                'driver_ewallet': 'INT'
-            }
-        }
-        statement = generate_insert_table_statement(insert)
-        db.execute(statement)
-        db.commit()
-        return Response(data)
-
-    except Exception as e:
-        db.rollback()
-        return Response(str(e.__dict__['orig']), 403)
-		
-
 @app.post("/food-insert")
 def insert_food():
     data = request.data.decode()
@@ -511,9 +444,9 @@ def insert_food():
         
         # Get random available driver
         random_driver_statement = sqlalchemy.text("""
-        SELECT d.email 
+        SELECT d.email
         FROM drivers d
-        WHERE d.is_available IS TRUE 
+        WHERE d.is_available IS TRUE
         ORDER BY RANDOM()
         LIMIT 1
         """)
@@ -526,7 +459,6 @@ def insert_food():
         
         random_driver_email = first_driver[0]
         
-        #random_driver_email = res.first()[0]
         post_data['price'] = random.randint(1, 100)
         post_data['status'] = 'PENDING'
         post_data['driver_email'] = random_driver_email
@@ -667,43 +599,6 @@ def cancel_food():
     except Exception as e:
         db.rollback()
         return Response(str(e.__dict__['orig']), 403) 
-    
-@app.post("/update-customer-ewallet")
-def update_customer_ewallet():
-    data = request.data.decode()
-    try:
-        customer_update = {
-            "name": "customer",
-            "id": update["ewallet_balance"],
-            "body": {"ewallet_balance":f'ewallet_balance-{t.amount}'}
-            #"body": UPDATE customer c SET ewallet_balance = ewallet_balance - t.amount FROM transaction t WHERE  t.customer_email=c.email,
-        }
-        statement = generate_update_table_statement(customer_update)
-        db.execute(statement)
-        db.commit()
-        return Response(statement.text, 200)
-    except Exception as e:
-        db.rollback()
-        return Response(str(e), 403)
-
-
-@app.post("/update-driver-ewallet")
-def update_driver_ewallet():
-    data = request.data.decode()    
-    try: 
-        driver_update = {
-            "name": "driver",
-            "id": update["ewallet_balance"],
-            "body": {"ewallet_balance":f'ewallet_balance-{t.amount}'}
-            # "body": UPDATE driver d SET ewallet_balance = ewallet_balance - t.amount FROM transaction t WHERE  t.driver_email=d.email ,
-        }
-        statement = generate_update_table_statement(customer_update)
-        db.execute(statement)
-        db.commit()
-        return Response(statement.text, 200)
-    except Exception as e:
-        db.rollback()
-        return Response(str(e), 403)
 
 ## GRAB ENDPOINTS END
 

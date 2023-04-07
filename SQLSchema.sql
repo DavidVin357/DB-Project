@@ -1,3 +1,5 @@
+CREATE TYPE status AS ENUM ('PENDING', 'CONFIRMED');
+
 CREATE TABLE IF NOT EXISTS customers (
     first_name VARCHAR(64) NOT NULL,
 	last_name VARCHAR(64) NOT NULL,
